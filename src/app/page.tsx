@@ -1,103 +1,136 @@
+import Link from "next/link";
+import { Crown, Users, Zap, ArrowRight, Shield, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import heroBg from "@/assets/hero-bg.jpg";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const features = [
+    {
+      icon: Crown,
+      title: "우리만의 리그를 만들어보세요",
+      description: "나만의 리그를 만들고 친구들을 초대하여 게임 커뮤니티를 구성하세요",
+      color: "text-primary"
+    },
+    {
+      icon: Zap,
+      title: "매치 코드를 생성하고 관리하세요",
+      description: "매치 코드를 생성하고 게임을 쉽게 관리하세요",
+      color: "text-accent"
+    },
+    {
+      icon: Users,
+      title: "함께 즐기는 게임 경험",
+      description: "플레이어들과 연결하고 함께 게임을 즐기세요",
+      color: "text-primary"
+    }
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative py-20 px-4 overflow-hidden min-h-[80vh] flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95"></div>
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30" 
+          style={{ backgroundImage: `url(${heroBg.src})` }}
+        ></div>
+        
+        <div className="relative container mx-auto text-center">
+          <div className="animate-float mb-8">
+            <Crown className="h-20 w-20 text-primary mx-auto mb-4 animate-glow" />
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-glow">
+            게임을 기록하고,
+            <br />
+            <span className="text-primary">커뮤니티와 함께하세요</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            친구들과 리그를 만들고, 매치를 생성하며, 함께 즐기는 새로운 방법
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button asChild variant="hero" size="lg" className="text-lg px-8 py-4">
+              <Link href="/universe">
+                시작하기
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-4">
+              <Link href="/leagues">
+                내 리그
+                <Shield className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-card/20">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
+              주요 <span className="text-primary">기능</span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              RYG의 강력한 기능들을 발견해보세요
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.title}
+                  className="card-feature group text-center"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
+                  <div className="mb-6">
+                    <Icon className={`h-12 w-12 mx-auto ${feature.color} group-hover:scale-110 transition-transform duration-300`} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4 text-foreground">
+                    {feature.title}
+                  </h3>
+                  
+                  <p className="text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto text-center">
+          <div className="card-glass max-w-4xl mx-auto p-12">
+            <Trophy className="h-16 w-16 text-primary mx-auto mb-6 animate-float" />
+            
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+              지금 <span className="text-primary">시작하세요</span>
+            </h2>
+            
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              모든 매치가 의미있고, 모든 리그가 이야기를 만들어가는 세상으로 들어오세요
+            </p>
+            
+            <Button asChild variant="hero" size="lg" className="text-xl px-12 py-6">
+              <Link href="/universe">
+                지금 시작하기
+                <Crown className="ml-3 h-6 w-6" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

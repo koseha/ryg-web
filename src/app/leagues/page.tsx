@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Crown, Users, Calendar, Plus, Trophy, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RoleBadge } from "@/components/ui/role-badge";
 
 const mockUserLeagues = [
   {
@@ -12,7 +13,12 @@ const mockUserLeagues = [
     memberCount: 47,
     lastActivity: "2024-02-15",
     recentMatches: 12,
-    status: "active"
+    status: "active",
+    description: "Elite league for diamond+ players",
+    totalMatches: 156,
+    winRate: 78.5,
+    region: "NA",
+    type: "Competitive"
   },
   {
     id: 2,
@@ -21,7 +27,12 @@ const mockUserLeagues = [
     memberCount: 67,
     lastActivity: "2024-02-14",
     recentMatches: 8,
-    status: "active"
+    status: "active",
+    description: "Perfect for busy professionals",
+    totalMatches: 123,
+    winRate: 65.2,
+    region: "NA",
+    type: "Casual"
   },
   {
     id: 3,
@@ -30,22 +41,44 @@ const mockUserLeagues = [
     memberCount: 156,
     lastActivity: "2024-02-13",
     recentMatches: 25,
-    status: "active"
+    status: "active",
+    description: "Helping players climb from Bronze to Gold",
+    totalMatches: 234,
+    winRate: 72.1,
+    region: "KR",
+    type: "Educational"
+  },
+  {
+    id: 4,
+    name: "Korean Masters",
+    role: "Member",
+    memberCount: 34,
+    lastActivity: "2024-02-12",
+    recentMatches: 5,
+    status: "active",
+    description: "한국 서버 마스터 이상 플레이어들을 위한 리그",
+    totalMatches: 78,
+    winRate: 68.9,
+    region: "KR",
+    type: "Competitive"
+  },
+  {
+    id: 5,
+    name: "Fun & Games",
+    role: "Member",
+    memberCount: 145,
+    lastActivity: "2024-02-11",
+    recentMatches: 18,
+    status: "active",
+    description: "진지하지 않고 재미있게 게임을 즐기고 싶은 분들을 위한 리그",
+    totalMatches: 189,
+    winRate: 55.3,
+    region: "NA",
+    type: "Casual"
   }
 ];
 
 export default function MyLeagues() {
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Owner":
-        return "bg-primary/20 text-primary border-primary/30";
-      case "Admin":
-        return "bg-accent/20 text-accent border-accent/30";
-      default:
-        return "bg-secondary/20 text-secondary-foreground border-secondary/30";
-    }
-  };
-
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "Owner":
@@ -155,9 +188,7 @@ export default function MyLeagues() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <RoleIcon className="h-5 w-5 text-primary" />
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getRoleColor(league.role)}`}>
-                      {league.role}
-                    </span>
+                    <RoleBadge role={league.role as any} />
                   </div>
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                 </div>

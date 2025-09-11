@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, Users, Calendar, Eye, Crown, MapPin } from "lucide-react";
+import { Search, Filter, Users, Calendar, Eye, Crown, MapPin, Trophy, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import Link from "next/link";
 
 const mockLeagues = [
@@ -15,7 +16,11 @@ const mockLeagues = [
     createdAt: "2024-01-15",
     creator: "RiftMaster",
     region: "NA",
-    type: "Competitive"
+    type: "Competitive",
+    totalMatches: 156,
+    recentMatchDate: "2024-02-15",
+    minTier: "Diamond",
+    isPublic: true
   },
   {
     id: 2,
@@ -25,7 +30,11 @@ const mockLeagues = [
     createdAt: "2024-02-03",
     creator: "SummonerFun",
     region: "EUW",
-    type: "Casual"
+    type: "Casual",
+    totalMatches: 89,
+    recentMatchDate: "2024-02-14",
+    minTier: "Bronze",
+    isPublic: true
   },
   {
     id: 3,
@@ -35,7 +44,11 @@ const mockLeagues = [
     createdAt: "2024-01-28",
     creator: "ClimbCoach",
     region: "KR",
-    type: "Educational"
+    type: "Educational",
+    totalMatches: 234,
+    recentMatchDate: "2024-02-13",
+    minTier: "Bronze",
+    isPublic: true
   },
   {
     id: 4,
@@ -45,7 +58,11 @@ const mockLeagues = [
     createdAt: "2024-02-10",
     creator: "NocturnalGamer",
     region: "NA",
-    type: "Casual"
+    type: "Casual",
+    totalMatches: 67,
+    recentMatchDate: "2024-02-12",
+    minTier: "Silver",
+    isPublic: true
   },
   {
     id: 5,
@@ -55,7 +72,11 @@ const mockLeagues = [
     createdAt: "2024-01-05",
     creator: "ProCoach",
     region: "EUW",
-    type: "Professional"
+    type: "Professional",
+    totalMatches: 45,
+    recentMatchDate: "2024-02-11",
+    minTier: "Master",
+    isPublic: true
   },
   {
     id: 6,
@@ -65,7 +86,67 @@ const mockLeagues = [
     createdAt: "2024-02-01",
     creator: "WeekendGamer",
     region: "NA",
-    type: "Casual"
+    type: "Casual",
+    totalMatches: 123,
+    recentMatchDate: "2024-02-10",
+    minTier: "Gold",
+    isPublic: true
+  },
+  {
+    id: 7,
+    name: "Korean Masters",
+    description: "한국 서버 마스터 이상 플레이어들을 위한 리그입니다. 높은 수준의 게임플레이와 전략적 토론을 제공합니다.",
+    memberCount: 34,
+    createdAt: "2024-01-20",
+    creator: "KoreanPro",
+    region: "KR",
+    type: "Competitive",
+    totalMatches: 78,
+    recentMatchDate: "2024-02-09",
+    minTier: "Master",
+    isPublic: true
+  },
+  {
+    id: 8,
+    name: "Beginner's Paradise",
+    description: "리그 오브 레전드를 처음 시작하는 분들을 위한 친화적인 커뮤니티입니다. 기초부터 차근차근 배워보세요.",
+    memberCount: 201,
+    createdAt: "2024-01-10",
+    creator: "BeginnerGuide",
+    region: "KR",
+    type: "Educational",
+    totalMatches: 345,
+    recentMatchDate: "2024-02-08",
+    minTier: "Bronze",
+    isPublic: true
+  },
+  {
+    id: 9,
+    name: "EUW Elite",
+    description: "유럽 서버의 엘리트 플레이어들이 모인 리그입니다. 국제적인 경쟁을 경험해보세요.",
+    memberCount: 28,
+    createdAt: "2024-01-25",
+    creator: "EUWChampion",
+    region: "EUW",
+    type: "Professional",
+    totalMatches: 56,
+    recentMatchDate: "2024-02-07",
+    minTier: "Grandmaster",
+    isPublic: true
+  },
+  {
+    id: 10,
+    name: "Fun & Games",
+    description: "진지하지 않고 재미있게 게임을 즐기고 싶은 분들을 위한 리그입니다. 스트레스 없이 즐겨보세요!",
+    memberCount: 145,
+    createdAt: "2024-02-05",
+    creator: "FunGamer",
+    region: "NA",
+    type: "Casual",
+    totalMatches: 189,
+    recentMatchDate: "2024-02-06",
+    minTier: "Bronze",
+    isPublic: true
   }
 ];
 
@@ -117,29 +198,24 @@ export default function Universe() {
         {/* Search and Filters */}
         <div className="card-glass p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+            <div className="flex-1">
+              <SearchInput
                 placeholder="리그 검색..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                onChange={setSearchTerm}
               />
             </div>
             
             <div className="flex gap-2">
-              <select
+              <FilterDropdown
+                options={[
+                  { value: "newest", label: "최신순" },
+                  { value: "members", label: "멤버 많은 순" }
+                ]}
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-secondary border border-border rounded-lg text-foreground"
-              >
-                <option value="newest">최신순</option>
-                <option value="members">멤버 많은 순</option>
-              </select>
-              
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4" />
-              </Button>
+                onValueChange={setSortBy}
+                placeholder="정렬"
+              />
             </div>
           </div>
         </div>
@@ -180,14 +256,26 @@ export default function Universe() {
                 {league.description}
               </p>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
-                <div className="flex items-center space-x-1">
-                  <Users className="h-4 w-4" />
-                  <span>{league.memberCount}명 참여중</span>
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-1">
+                    <Users className="h-4 w-4" />
+                    <span>{league.memberCount}명 참여중</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Trophy className="h-4 w-4" />
+                    <span>{league.totalMatches}경기 진행됨</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(league.createdAt).toLocaleDateString()}</span>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>생성일: {new Date(league.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-4 w-4" />
+                    <span>최근 매치: {new Date(league.recentMatchDate).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </div>
 
@@ -197,7 +285,7 @@ export default function Universe() {
                   <span className="text-primary font-medium">{league.creator}</span>
                 </div>
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/universe/${league.id}`}>
+                  <Link href={`/universe/league/${league.id}`}>
                     <Eye className="h-4 w-4 mr-2" />
                     자세히 보기
                   </Link>

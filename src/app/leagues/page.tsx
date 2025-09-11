@@ -188,7 +188,7 @@ export default function MyLeagues() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <RoleIcon className="h-5 w-5 text-primary" />
-                    <RoleBadge role={league.role as any} />
+                    <RoleBadge role={league.role as "Owner" | "Admin" | "Member"} />
                   </div>
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                 </div>

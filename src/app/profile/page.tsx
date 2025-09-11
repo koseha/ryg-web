@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+// import Link from "next/link"; // Removed unused import
 import { 
   User, 
   Edit, 
@@ -141,7 +141,7 @@ export default function UserProfile() {
                       ))}
                     </select>
                   ) : (
-                    <TierBadge tier={profile.tier as any} />
+                    <TierBadge tier={profile.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
                   )}
                 </div>
                 

@@ -97,7 +97,7 @@ const mockRecentMembers = [
 
 export default function LeagueDetail() {
   const params = useParams();
-  const leagueId = params.id;
+  // const leagueId = params.id; // Removed unused variable
   const [showJoinForm, setShowJoinForm] = useState(false);
 
   const getTypeColor = (type: string) => {
@@ -218,10 +218,10 @@ export default function LeagueDetail() {
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="font-medium text-foreground">{member.name}</span>
-                    <RoleBadge role={member.role as any} />
+                    <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
                   </div>
                   <div className="flex items-center space-x-2">
-                    <TierBadge tier={member.tier as any} />
+                    <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
                     <PositionTags positions={member.positions} />
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, Users, Calendar, Eye, Crown, MapPin, Trophy, Clock } from "lucide-react";
+import { Users, Calendar, Eye, Crown, MapPin, Trophy, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";

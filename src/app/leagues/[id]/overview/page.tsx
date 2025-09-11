@@ -11,9 +11,6 @@ import {
   Play,
   UserPlus,
   MoreVertical,
-  Star,
-  User,
-  Settings,
   Save,
   Trash2,
   AlertTriangle,
@@ -64,35 +61,7 @@ const mockLeagueOverview = {
   role: "Owner"
 };
 
-const mockRecentMatches = [
-  {
-    id: 1,
-    title: "주간 토너먼트 결승",
-    code: "CHAMP001",
-    status: "completed",
-    participants: 10,
-    createdAt: "2024-02-15T10:00:00Z",
-    duration: "28분"
-  },
-  {
-    id: 2,
-    title: "연습 매치 #47",
-    code: "CHAMP002",
-    status: "active",
-    participants: 8,
-    createdAt: "2024-02-15T14:30:00Z",
-    duration: "진행중"
-  },
-  {
-    id: 3,
-    title: "랭크 매치 #46",
-    code: "CHAMP003",
-    status: "completed",
-    participants: 10,
-    createdAt: "2024-02-14T20:00:00Z",
-    duration: "35분"
-  }
-];
+// Mock data for recent matches (removed unused variable)
 
 // Mock data for pending applications
 const mockPendingApplications = [
@@ -389,7 +358,7 @@ export default function LeagueOverview() {
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <Crown className="h-8 w-8 text-primary" />
-            <RoleBadge role={mockLeagueOverview.role as any} />
+            <RoleBadge role={mockLeagueOverview.role as "Owner" | "Admin" | "Member"} />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-2 text-glow">
             {mockLeagueOverview.name}
@@ -533,7 +502,7 @@ export default function LeagueOverview() {
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">
                                 <h3 className="text-lg font-medium text-foreground">{application.name}</h3>
-                                <TierBadge tier={application.tier as any} />
+                                <TierBadge tier={application.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
                                 <PositionTags positions={application.positions} />
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">{application.email}</p>
@@ -625,8 +594,8 @@ export default function LeagueOverview() {
 
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <TierBadge tier={member.tier as any} />
-                            <RoleBadge role={member.role as any} />
+                            <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
+                            <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
                           </div>
                           <PositionTags positions={member.positions} />
                           <p className="text-xs text-muted-foreground">
@@ -889,7 +858,7 @@ export default function LeagueOverview() {
                         <h4 className="font-medium text-foreground">{admin.name}</h4>
                         <p className="text-sm text-muted-foreground">{admin.email}</p>
                       </div>
-                      <RoleBadge role={admin.role as any} />
+                      <RoleBadge role={admin.role as "Owner" | "Admin" | "Member"} />
                     </div>
                   ))}
                 </div>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,10 +24,13 @@ export const UserAvatar = ({
   };
 
   if (src) {
+    const sizeValue = size === "sm" ? 32 : size === "md" ? 40 : 64;
     return (
-      <img
+      <Image
         src={src}
         alt={alt}
+        width={sizeValue}
+        height={sizeValue}
         className={cn(
           "rounded-full border-2 border-primary/30 object-cover",
           sizeClasses[size],

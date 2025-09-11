@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       data: filteredLeagues,
       total: filteredLeagues.length
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch leagues' },
       { status: 500 }
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: newLeague
     }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to create league' },
       { status: 500 }

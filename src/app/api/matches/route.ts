@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       data: filteredMatches,
       total: filteredMatches.length
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch matches' },
       { status: 500 }
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: newMatch
     }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Failed to create match' },
       { status: 500 }

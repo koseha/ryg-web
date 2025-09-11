@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Crown, Users, Zap, ArrowRight, Shield, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import heroBg from "@/assets/hero-bg.jpg";
 
 export default function Home() {

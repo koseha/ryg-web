@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Invalid action' },
       { status: 400 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Authentication failed' },
       { status: 500 }
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: user
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Token validation failed' },
       { status: 500 }

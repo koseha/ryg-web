@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { User, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,9 +25,11 @@ export const UserDropdown = () => {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-2 p-2">
-          <img
+          <Image
             src={mockUser.avatar}
             alt={mockUser.name}
+            width={32}
+            height={32}
             className="h-8 w-8 rounded-full border-2 border-primary/30"
           />
           <span className="hidden md:block font-medium">{mockUser.name}</span>

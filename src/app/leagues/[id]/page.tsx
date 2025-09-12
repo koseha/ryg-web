@@ -61,8 +61,6 @@ const mockLeagueOverview = {
   role: "Owner"
 };
 
-// Mock data for recent matches (removed unused variable)
-
 // Mock data for pending applications
 const mockPendingApplications = [
   {
@@ -250,7 +248,7 @@ const statusOptions = [
 ];
 
 
-export default function LeagueOverview() {
+export default function LeaguePage() {
   const params = useParams();
   const leagueId = params.id;
   
@@ -466,7 +464,7 @@ export default function LeagueOverview() {
             <h2 className="text-2xl font-bold text-foreground mb-6">빠른 작업</h2>
           <div className="grid md:grid-cols-2 gap-4">
               <Button asChild variant="outline" className="h-16 flex-col space-y-2">
-                <Link href={`/leagues/${leagueId}/matches`}>
+                <Link href={`/leagues/${leagueId}#matches`}>
                   <Play className="h-6 w-6" />
                 <span>매치 생성하기</span>
                 </Link>
@@ -729,9 +727,7 @@ export default function LeagueOverview() {
                           </div>
                           
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <CopyButton text={match.code} />
-                            </Button>
+                            <CopyButton text={match.code} />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">

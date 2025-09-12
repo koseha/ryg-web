@@ -68,12 +68,21 @@
 @layer base {
   * {
     @apply border-border;
+    overscroll-behavior: none;
+  }
+
+  html {
+    @apply bg-background;
+    background: var(--gradient-hero);
+    min-height: 100%;
+    overscroll-behavior: none;
   }
 
   body {
     @apply bg-background text-foreground font-sans;
     background: var(--gradient-hero);
     min-height: 100vh;
+    overscroll-behavior: none;
   }
 }
 

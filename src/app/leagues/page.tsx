@@ -216,7 +216,7 @@ export default function MyLeagues() {
                 </div>
 
                 <Button asChild variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                  <Link href={`/leagues/${league.id}/overview`}>
+                  <Link href={`/leagues/${league.id}`}>
                     대시보드로 이동
                   </Link>
                 </Button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { User, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,9 +44,11 @@ export const UserDropdown = () => {
           <p className="text-sm text-muted-foreground">{mockUser.email}</p>
         </div>
         
-        <DropdownMenuItem className="flex items-center space-x-2 cursor-pointer">
-          <User className="h-4 w-4" />
-          <span>프로필 보기</span>
+        <DropdownMenuItem asChild className="flex items-center space-x-2 cursor-pointer">
+          <Link href="/profile">
+            <User className="h-4 w-4" />
+            <span>프로필 보기</span>
+          </Link>
         </DropdownMenuItem>
         
         <DropdownMenuSeparator className="bg-border" />

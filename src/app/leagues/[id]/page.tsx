@@ -281,6 +281,8 @@ export default function LeaguePage() {
   const [rules, setRules] = useState(settings.rules);
   const [newRule, setNewRule] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
 
   // Filter functions
   const filteredMembers = mockMembers.filter(member => {
@@ -374,6 +376,25 @@ export default function LeaguePage() {
   const handleRoleChange = (memberId: number, newRole: "Admin" | "Member") => {
     console.log(`Changing member ${memberId} role to ${newRole}`);
     // TODO: Implement role change logic
+  };
+
+  const handleTransferOwnership = (adminId: number) => {
+    setSelectedAdminId(adminId);
+    setShowTransferDialog(true);
+  };
+
+  const confirmTransferOwnership = async () => {
+    if (selectedAdminId) {
+      console.log(`Transferring ownership to admin ${selectedAdminId}`);
+      // TODO: Implement actual ownership transfer API call
+      // This should:
+      // 1. Update the current owner to Admin
+      // 2. Update the selected admin to Owner
+      // 3. Update mockLeagueOverview.role
+      // 4. Refresh the page or update state
+      setShowTransferDialog(false);
+      setSelectedAdminId(null);
+    }
   };
 
 
@@ -842,156 +863,225 @@ export default function LeaguePage() {
           </TabsContent>
 
           <TabsContent value="settings">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-foreground">리그 설정</h2>
-                <Button onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      저장 중...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      저장
-                    </>
-                  )}
-                </Button>
-              </div>
+            {mockLeagueOverview.role === "Owner" ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-foreground">리그 설정</h2>
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        저장 중...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        저장
+                      </>
+                    )}
+                  </Button>
+                </div>
 
-              {/* Basic Information */}
-              <div className="card-glass p-6">
-                <h3 className="text-xl font-bold text-foreground mb-4">기본 정보</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      리그 이름
-                    </label>
-                    <Input
-                      value={settings.name}
-                      onChange={(e) => setSettings({...settings, name: e.target.value})}
-                    />
-                  </div>
+                {/* Basic Information */}
+                <div className="card-glass p-6">
+                  <h3 className="text-xl font-bold text-foreground mb-4">기본 정보</h3>
                   
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      설명
-                    </label>
-                    <Textarea
-                      value={settings.description}
-                      onChange={(e) => setSettings({...settings, description: e.target.value})}
-                      rows={3}
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        리그 이름
+                      </label>
+                      <Input
+                        value={settings.name}
+                        onChange={(e) => setSettings({...settings, name: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        설명
+                      </label>
+                      <Textarea
+                        value={settings.description}
+                        onChange={(e) => setSettings({...settings, description: e.target.value})}
+                        rows={3}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Rules */}
-              <div className="card-glass p-6">
-                <h3 className="text-xl font-bold text-foreground mb-4">규칙</h3>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    {rules.map((rule, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <span className="text-sm text-foreground flex-1">{rule}</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeRule(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                {/* Rules */}
+                <div className="card-glass p-6">
+                  <h3 className="text-xl font-bold text-foreground mb-4">규칙</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      {rules.map((rule, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <span className="text-sm text-foreground flex-1">{rule}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeRule(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Input
+                        value={newRule}
+                        onChange={(e) => setNewRule(e.target.value)}
+                        placeholder="새 규칙을 입력하세요"
+                        onKeyPress={(e) => e.key === 'Enter' && addRule()}
+                      />
+                      <Button onClick={addRule} variant="outline">
+                        추가
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operating Team */}
+                <div className="card-glass p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-foreground">운영진</h3>
+                    <Button variant="outline" size="sm">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      운영진 추가
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {mockAdmins.map((admin) => (
+                      <div key={admin.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
+                        <Image
+                          src={admin.avatar}
+                          alt={admin.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-foreground">{admin.name}</h4>
+                          <p className="text-sm text-muted-foreground">{admin.email}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RoleBadge role={admin.role as "Owner" | "Admin" | "Member"} />
+                          {admin.role === "Admin" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleTransferOwnership(admin.id)}
+                              className="text-orange-500 border-orange-500 hover:bg-orange-500/10"
+                            >
+                              <Crown className="h-4 w-4 mr-1" />
+                              책임자 위임
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="card-glass p-6 border-red-500/20">
+                  <h3 className="text-xl font-bold text-red-500 mb-4">위험 구역</h3>
                   
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newRule}
-                      onChange={(e) => setNewRule(e.target.value)}
-                      placeholder="새 규칙을 입력하세요"
-                      onKeyPress={(e) => e.key === 'Enter' && addRule()}
-                    />
-                    <Button onClick={addRule} variant="outline">
-                      추가
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Operating Team */}
-              <div className="card-glass p-6">
-                <h3 className="text-xl font-bold text-foreground mb-4">운영진</h3>
-                
-                <div className="space-y-3">
-                  {mockAdmins.map((admin) => (
-                    <div key={admin.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-                      <Image
-                        src={admin.avatar}
-                        alt={admin.name}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">{admin.name}</h4>
-                        <p className="text-sm text-muted-foreground">{admin.email}</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-red-500/10 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">리그 삭제</h4>
+                        <p className="text-sm text-muted-foreground">
+                          리그를 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
+                        </p>
                       </div>
-                      <RoleBadge role={admin.role as "Owner" | "Admin" | "Member"} />
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            리그 삭제
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center space-x-2">
+                              <AlertTriangle className="h-5 w-5 text-red-500" />
+                              <span>리그 삭제 확인</span>
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              정말로 이 리그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며, 
+                              모든 멤버, 매치, 설정이 영구적으로 삭제됩니다.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>취소</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteLeague}
+                              className="bg-red-500 hover:bg-red-600"
+                            >
+                              삭제
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Danger Zone */}
-              <div className="card-glass p-6 border-red-500/20">
-                <h3 className="text-xl font-bold text-red-500 mb-4">위험 구역</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-red-500/10 rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-foreground">리그 삭제</h4>
-                      <p className="text-sm text-muted-foreground">
-                        리그를 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
-                      </p>
-                    </div>
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          리그 삭제
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="flex items-center space-x-2">
-                            <AlertTriangle className="h-5 w-5 text-red-500" />
-                            <span>리그 삭제 확인</span>
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            정말로 이 리그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며, 
-                            모든 멤버, 매치, 설정이 영구적으로 삭제됩니다.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>취소</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteLeague}
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            삭제
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
                   </div>
                 </div>
-          </div>
-        </div>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-2xl font-bold mb-2 text-muted-foreground">접근 권한이 없습니다</h3>
+                <p className="text-muted-foreground mb-6">
+                  리그 설정은 책임자(Owner)만 접근할 수 있습니다.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  리그 설정이 필요하시면 책임자에게 문의하세요.
+                </p>
+              </div>
+            )}
+
+            {/* Ownership Transfer Confirmation Dialog */}
+            <AlertDialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center space-x-2">
+                    <Crown className="h-5 w-5 text-orange-500" />
+                    <span>책임자 위임 확인</span>
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    정말로 이 운영진에게 책임자 권한을 위임하시겠습니까?
+                    <br /><br />
+                    <strong>주의사항:</strong>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>위임 후에는 본인이 일반 운영진이 됩니다</li>
+                      <li>책임자 권한은 위임받은 운영진에게로 이전됩니다</li>
+                      <li>이 작업은 되돌릴 수 없습니다</li>
+                    </ul>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => {
+                    setShowTransferDialog(false);
+                    setSelectedAdminId(null);
+                  }}>
+                    취소
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={confirmTransferOwnership}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    책임자 위임
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </TabsContent>
         </Tabs>
       </div>

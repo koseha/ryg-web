@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 // import Link from "next/link"; // Removed unused import
 import { 
   User, 
@@ -102,9 +103,11 @@ export default function UserProfile() {
             
             <div className="flex flex-col md:flex-row gap-8">
               <div className="text-center md:text-left">
-                <img
+                <Image
                   src={profile.avatar}
                   alt={profile.name}
+                  width={96}
+                  height={96}
                   className="h-24 w-24 rounded-full border-4 border-primary/30 mx-auto md:mx-0 mb-4"
                 />
                 <p className="text-sm text-muted-foreground">{profile.email}</p>

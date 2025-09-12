@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Crown, 
   Users, 
@@ -547,9 +548,11 @@ export default function LeaguePage() {
                       <div key={application.id} className="p-4 bg-secondary/20 rounded-lg">
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                           <div className="flex items-start space-x-4">
-                            <img
+                            <Image
                               src={application.avatar}
                               alt={application.name}
+                              width={48}
+                              height={48}
                               className="w-12 h-12 rounded-full flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
@@ -627,9 +630,11 @@ export default function LeaguePage() {
                       <div key={member.id} className="p-4 bg-secondary/20 rounded-lg">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-3 min-w-0 flex-1">
-                            <img
+                            <Image
                               src={member.avatar}
                               alt={member.name}
+                              width={40}
+                              height={40}
                               className="w-10 h-10 rounded-full flex-shrink-0"
                             />
                             <div className="min-w-0 flex-1">
@@ -924,9 +929,11 @@ export default function LeaguePage() {
                 <div className="space-y-3">
                   {mockAdmins.map((admin) => (
                     <div key={admin.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-                      <img
+                      <Image
                         src={admin.avatar}
                         alt={admin.name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-full"
                       />
                       <div className="flex-1">

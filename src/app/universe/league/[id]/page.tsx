@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   Crown, 
   Users, 
@@ -107,8 +107,6 @@ const regionDescriptions = {
 };
 
 export default function LeagueDetail() {
-  const params = useParams();
-  // const leagueId = params.id; // Removed unused variable
   const [showJoinForm, setShowJoinForm] = useState(false);
 
   const getTypeColor = (type: string) => {
@@ -221,9 +219,11 @@ export default function LeagueDetail() {
               .filter(member => member.role === "Owner" || member.role === "Admin")
               .map((member) => (
                 <div key={member.id} className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg">
-                  <img
+                  <Image
                     src={member.avatar}
                     alt={member.name}
+                    width={40}
+                    height={40}
                     className="h-10 w-10 rounded-full border-2 border-primary/30"
                   />
                   <div>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Crown, Heart } from "lucide-react";
 
 export const Footer = () => {

@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Plus,
   Clock,
-  Target
+  Target,
+  Eye
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -51,14 +55,20 @@ const mockLeagueOverview = {
   name: "Champions Arena",
   description: "Elite league for diamond+ players",
   memberCount: 47,
-  maxMembers: 100,
   totalMatches: 156,
-  activeMatches: 3,
+  monthlyMatches: 12,
   completedMatches: 153,
   winRate: 68.5,
   averageGameTime: "32분",
   lastActivity: "2024-02-15T14:30:00Z",
-  role: "Owner"
+  role: "Owner",
+  type: "Pro",
+  rules: [
+    "다이아몬드 이상 티어만 가입 가능",
+    "주간 토너먼트 참여 필수",
+    "게임 내 매너 준수",
+    "불참 시 사전 공지 필수"
+  ]
 };
 
 // Mock data for pending applications
@@ -66,7 +76,6 @@ const mockPendingApplications = [
   {
     id: 1,
     name: "NewPlayer",
-    email: "newplayer@example.com",
     tier: "Gold",
     positions: ["Mid", "Top"],
     message: "안녕하세요! 리그에 가입하고 싶습니다. 함께 게임하면서 실력을 늘리고 싶어요.",
@@ -76,7 +85,6 @@ const mockPendingApplications = [
   {
     id: 2,
     name: "RisingStar",
-    email: "risingstar@example.com",
     tier: "Platinum",
     positions: ["Jungle", "Support"],
     message: "플래티넘 티어에서 더 높은 수준의 게임을 하고 싶습니다.",
@@ -90,7 +98,6 @@ const mockMembers = [
   {
     id: 1,
     name: "RiftMaster",
-    email: "riftmaster@example.com",
     tier: "Challenger",
     positions: ["Mid", "Top"],
     role: "Owner",
@@ -104,7 +111,6 @@ const mockMembers = [
   {
     id: 2,
     name: "ProGamer",
-    email: "progamer@example.com",
     tier: "Grandmaster",
     positions: ["Jungle", "Support"],
     role: "Admin",
@@ -118,7 +124,6 @@ const mockMembers = [
   {
     id: 3,
     name: "DiamondPlayer",
-    email: "diamond@example.com",
     tier: "Diamond",
     positions: ["ADC", "Mid"],
     role: "Member",
@@ -251,6 +256,17 @@ const statusOptions = [
 export default function LeaguePage() {
   const params = useParams();
   const leagueId = params.id;
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "Pro":
+        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+      case "Basic":
+        return "bg-muted/20 text-muted-foreground border-muted/30";
+      default:
+        return "bg-secondary/20 text-secondary-foreground border-secondary/30";
+    }
+  };
   
   // State for different tabs
   const [roleFilter, setRoleFilter] = useState("all");
@@ -273,10 +289,16 @@ export default function LeaguePage() {
     return matchesRole && matchesTier && matchesPosition;
   });
 
-  const filteredMatches = mockMatches.filter(match => {
-    const matchesStatus = statusFilter === "all" || match.status === statusFilter;
-    return matchesStatus;
-  });
+  const filteredMatches = mockMatches
+    .filter(match => {
+      const matchesStatus = statusFilter === "all" || match.status === statusFilter;
+      return matchesStatus;
+    })
+    .sort((a, b) => {
+      // 상태별 정렬: 대기 중 > 진행 중 > 완료
+      const statusOrder = { pending: 0, active: 1, completed: 2 };
+      return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+    });
 
   // Helper functions
   const generateMatchCode = () => {
@@ -348,70 +370,103 @@ export default function LeaguePage() {
     console.log("Deleting league...");
   };
 
+  const handleRoleChange = (memberId: number, newRole: "Admin" | "Member") => {
+    console.log(`Changing member ${memberId} role to ${newRole}`);
+    // TODO: Implement role change logic
+  };
+
 
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <Crown className="h-8 w-8 text-primary" />
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <Crown className="h-8 w-8 text-primary flex-shrink-0" />
             <RoleBadge role={mockLeagueOverview.role as "Owner" | "Admin" | "Member"} />
+            <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(mockLeagueOverview.type)}`}>
+              {mockLeagueOverview.type}
+            </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 text-glow">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-glow break-words">
             {mockLeagueOverview.name}
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-lg sm:text-xl text-muted-foreground break-words">
             {mockLeagueOverview.description}
           </p>
         </div>
 
         {/* Tab Navigation */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="matches">Matches</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-8 h-auto">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-3">
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">개요</span>
+            </TabsTrigger>
+            <TabsTrigger value="members" className="text-xs sm:text-sm py-2 px-3">
+              <span className="hidden sm:inline">Members</span>
+              <span className="sm:hidden">멤버</span>
+            </TabsTrigger>
+            <TabsTrigger value="matches" className="text-xs sm:text-sm py-2 px-3">
+              <span className="hidden sm:inline">Matches</span>
+              <span className="sm:hidden">매치</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs sm:text-sm py-2 px-3">
+              <span className="hidden sm:inline">Settings</span>
+              <span className="sm:hidden">설정</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
 
         {/* Quick Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="card-glass p-6 text-center">
-            <Users className="h-8 w-8 text-primary mx-auto mb-3" />
-            <div className="text-3xl font-bold text-foreground mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <div className="card-glass p-4 sm:p-6 text-center">
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-3" />
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
               {mockLeagueOverview.memberCount}
             </div>
-            <div className="text-sm text-muted-foreground">총 멤버 수</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">총 멤버 수</div>
           </div>
           
-          <div className="card-glass p-6 text-center">
-            <Trophy className="h-8 w-8 text-accent mx-auto mb-3" />
-                <div className="text-3xl font-bold text-foreground mb-1">
+          <div className="card-glass p-4 sm:p-6 text-center">
+            <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-accent mx-auto mb-3" />
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
               {mockLeagueOverview.totalMatches}
-                </div>
-            <div className="text-sm text-muted-foreground">생성된 매치 수</div>
-                </div>
+            </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">생성된 매치 수</div>
+          </div>
           
-          <div className="card-glass p-6 text-center">
-            <Calendar className="h-8 w-8 text-green-500 mx-auto mb-3" />
-            <div className="text-3xl font-bold text-foreground mb-1">
-              {mockLeagueOverview.activeMatches}
-                </div>
-            <div className="text-sm text-muted-foreground">이번 달 활동</div>
-              </div>
+          <div className="card-glass p-4 sm:p-6 text-center sm:col-span-2 lg:col-span-1">
+            <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mx-auto mb-3" />
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+              {mockLeagueOverview.monthlyMatches}
+            </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">이번 달 매치 수</div>
+          </div>
         </div>
 
         {/* League Information */}
         <div className="card-glass p-6 mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-6">리그 정보</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium text-foreground mb-2">설명</h3>
               <p className="text-muted-foreground">{mockLeagueOverview.description}</p>
+            </div>
+
+            {/* Rules */}
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-3">리그 규칙</h3>
+              <ul className="space-y-2">
+                {mockLeagueOverview.rules.map((rule, index) => (
+                  <li key={index} className="flex items-start space-x-2 text-muted-foreground">
+                    <span className="text-primary mt-1">•</span>
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
             
             <div className="grid md:grid-cols-2 gap-4">
@@ -460,22 +515,22 @@ export default function LeaguePage() {
         </div>
 
         {/* Quick Actions */}
-          <div className="card-glass p-6">
-            <h2 className="text-2xl font-bold text-foreground mb-6">빠른 작업</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-              <Button asChild variant="outline" className="h-16 flex-col space-y-2">
-                <Link href={`/leagues/${leagueId}#matches`}>
-                  <Play className="h-6 w-6" />
-                <span>매치 생성하기</span>
-                </Link>
-              </Button>
-              
-              <Button asChild variant="outline" className="h-16 flex-col space-y-2">
+        <div className="card-glass p-4 sm:p-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">빠른 작업</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Button asChild variant="outline" className="h-14 sm:h-16 flex-col space-y-2">
+              <Link href={`/leagues/${leagueId}#matches`}>
+                <Play className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-sm sm:text-base">매치 생성하기</span>
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" className="h-14 sm:h-16 flex-col space-y-2">
               <Link href="/universe">
-                  <UserPlus className="h-6 w-6" />
-                <span>멤버 초대하기</span>
-                </Link>
-              </Button>
+                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-sm sm:text-base">멤버 초대하기</span>
+              </Link>
+            </Button>
           </div>
         </div>
           </TabsContent>
@@ -490,34 +545,41 @@ export default function LeaguePage() {
                   <div className="space-y-4">
                     {mockPendingApplications.map((application) => (
                       <div key={application.id} className="p-4 bg-secondary/20 rounded-lg">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                           <div className="flex items-start space-x-4">
                             <img
                               src={application.avatar}
                               alt={application.name}
-                              className="w-12 h-12 rounded-full"
+                              className="w-12 h-12 rounded-full flex-shrink-0"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                                 <h3 className="text-lg font-medium text-foreground">{application.name}</h3>
-                                <TierBadge tier={application.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
-                                <PositionTags positions={application.positions} />
+                                <div className="flex flex-wrap gap-2">
+                                  <TierBadge tier={application.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
+                                  <PositionTags positions={application.positions} />
+                                </div>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">{application.email}</p>
-                              <p className="text-sm text-foreground mb-3">{application.message}</p>
+                              <p className="text-sm text-foreground mb-3 break-words">{application.message}</p>
                               <p className="text-xs text-muted-foreground">
                                 신청일: {new Date(application.appliedAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
                           
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              승인
+                          <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
+                            <Button size="sm" variant="outline" className="w-full sm:w-auto">
+                              <Eye className="h-4 w-4 mr-1" />
+                              프로필 보기
                             </Button>
-                            <Button size="sm" variant="outline">
-                              거절
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
+                                승인
+                              </Button>
+                              <Button size="sm" variant="outline" className="flex-1 sm:flex-none">
+                                거절
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -537,7 +599,7 @@ export default function LeaguePage() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   <FilterDropdown
                     options={roleOptions}
                     value={roleFilter}
@@ -560,38 +622,57 @@ export default function LeaguePage() {
 
                 {/* Members Grid */}
                 {filteredMembers.length > 0 ? (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredMembers.map((member) => (
                       <div key={member.id} className="p-4 bg-secondary/20 rounded-lg">
                         <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 min-w-0 flex-1">
                             <img
                               src={member.avatar}
                               alt={member.name}
-                              className="w-10 h-10 rounded-full"
+                              className="w-10 h-10 rounded-full flex-shrink-0"
                             />
-                            <div>
-                              <h3 className="font-medium text-foreground">{member.name}</h3>
-                              <p className="text-sm text-muted-foreground">{member.email}</p>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-medium text-foreground truncate">{member.name}</h3>
                             </div>
                           </div>
                           
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" className="flex-shrink-0">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem>프로필 보기</DropdownMenuItem>
-                              <DropdownMenuItem>메시지 보내기</DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-500">멤버 제거</DropdownMenuItem>
+                              {mockLeagueOverview.role === "Owner" && (
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger>역할 변경</DropdownMenuSubTrigger>
+                                  <DropdownMenuSubContent>
+                                    <DropdownMenuItem 
+                                      onClick={() => handleRoleChange(member.id, "Admin")}
+                                      disabled={member.role === "Owner"}
+                                    >
+                                      운영자
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => handleRoleChange(member.id, "Member")}
+                                      disabled={member.role === "Owner"}
+                                    >
+                                      멤버
+                                    </DropdownMenuItem>
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+                              )}
+                              {mockLeagueOverview.role === "Owner" && (
+                                <DropdownMenuItem className="text-red-500">멤버 제거</DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
                             <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
                           </div>
@@ -709,8 +790,6 @@ export default function LeaguePage() {
                             </div>
                             
                             <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
-                              <span>코드: {match.code}</span>
-                              <span>참가자: {match.participants}/{match.maxParticipants}</span>
                               <span>생성자: {match.createdBy}</span>
                               <span>생성일: {new Date(match.createdAt).toLocaleDateString()}</span>
                             </div>
@@ -727,10 +806,10 @@ export default function LeaguePage() {
                           </div>
                           
                           <div className="flex space-x-2">
-                            <CopyButton text={match.code} />
+                            <CopyButton text={match.code} size="sm" />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>

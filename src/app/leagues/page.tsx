@@ -18,7 +18,7 @@ const mockUserLeagues = [
     totalMatches: 156,
     winRate: 78.5,
     region: "NA",
-    type: "Competitive"
+    type: "Pro"
   },
   {
     id: 2,
@@ -32,7 +32,7 @@ const mockUserLeagues = [
     totalMatches: 123,
     winRate: 65.2,
     region: "NA",
-    type: "Casual"
+    type: "Basic"
   },
   {
     id: 3,
@@ -46,7 +46,7 @@ const mockUserLeagues = [
     totalMatches: 234,
     winRate: 72.1,
     region: "KR",
-    type: "Educational"
+    type: "Basic"
   },
   {
     id: 4,
@@ -60,7 +60,7 @@ const mockUserLeagues = [
     totalMatches: 78,
     winRate: 68.9,
     region: "KR",
-    type: "Competitive"
+    type: "Pro"
   },
   {
     id: 5,
@@ -74,7 +74,7 @@ const mockUserLeagues = [
     totalMatches: 189,
     winRate: 55.3,
     region: "NA",
-    type: "Casual"
+    type: "Basic"
   }
 ];
 
@@ -87,6 +87,17 @@ export default function MyLeagues() {
         return Star;
       default:
         return Users;
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "Pro":
+        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+      case "Basic":
+        return "bg-muted/20 text-muted-foreground border-muted/30";
+      default:
+        return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
   };
 
@@ -190,7 +201,9 @@ export default function MyLeagues() {
                     <RoleIcon className="h-5 w-5 text-primary" />
                     <RoleBadge role={league.role as "Owner" | "Admin" | "Member"} />
                   </div>
-                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className={`px-2 py-1 text-xs rounded-full border ${getTypeColor(league.type)}`}>
+                    {league.type}
+                  </span>
                 </div>
 
                 <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">

@@ -1,38 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Mock data for matches
-const mockMatches = [
-  {
-    id: 1,
-    leagueId: 1,
-    code: "CHAMP2024001",
-    status: "active",
-    createdAt: "2024-02-15T10:00:00Z",
-    participants: 8,
-    maxParticipants: 10,
-    description: "Weekly Championship Match"
-  },
-  {
-    id: 2,
-    leagueId: 2,
-    code: "CASUAL2024001",
-    status: "completed",
-    createdAt: "2024-02-14T15:30:00Z",
-    participants: 5,
-    maxParticipants: 5,
-    description: "Casual Friday Match"
-  },
-  {
-    id: 3,
-    leagueId: 3,
-    code: "EDUC2024001",
-    status: "active",
-    createdAt: "2024-02-13T20:00:00Z",
-    participants: 6,
-    maxParticipants: 8,
-    description: "Learning Session Match"
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,26 +7,33 @@ export async function GET(request: NextRequest) {
     const leagueId = searchParams.get('leagueId');
     const status = searchParams.get('status');
 
-    let filteredMatches = [...mockMatches];
+    let query = supabase
+      .from('matches')
+      .select('*');
 
     // Filter by league ID
     if (leagueId) {
-      filteredMatches = filteredMatches.filter(match => 
-        match.leagueId === parseInt(leagueId)
-      );
+      query = query.eq('league_id', leagueId);
     }
 
     // Filter by status
     if (status) {
-      filteredMatches = filteredMatches.filter(match => 
-        match.status === status
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: filteredMatches,
-      total: filteredMatches.length
+      data: data || [],
+      total: data?.length || 0
     });
   } catch {
     return NextResponse.json(
@@ -74,38 +48,49 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate required fields
-    if (!body.leagueId || !body.description) {
+    if (!body.leagueId || !body.title || !body.description) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
     // Generate match code
-    const leaguePrefix = body.leagueId === 1 ? 'CHAMP' : 
-                        body.leagueId === 2 ? 'CASUAL' : 
-                        body.leagueId === 3 ? 'EDUC' : 'MATCH';
     const timestamp = new Date().getTime().toString().slice(-6);
-    const matchCode = `${leaguePrefix}${timestamp}`;
+    const matchCode = `MATCH${timestamp}`;
 
     // Create new match
-    const newMatch = {
-      id: mockMatches.length + 1,
-      leagueId: body.leagueId,
-      code: matchCode,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      participants: 0,
-      maxParticipants: body.maxParticipants || 10,
-      description: body.description
-    };
+    const { data, error } = await supabase
+      .from('matches')
+      .insert({
+        league_id: body.leagueId,
+        title: body.title,
+        description: body.description,
+        riot_tournament_code: matchCode,
+        created_by: user.id
+      })
+      .select()
+      .single();
 
-    // In a real app, you would save to database here
-    mockMatches.push(newMatch);
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      data: newMatch
+      data
     }, { status: 201 });
   } catch {
     return NextResponse.json(

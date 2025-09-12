@@ -18,7 +18,7 @@ const mockUserLeagues = [
     totalMatches: 156,
     winRate: 78.5,
     region: "NA",
-    type: "Pro"
+    type: "Plus"
   },
   {
     id: 2,
@@ -60,7 +60,7 @@ const mockUserLeagues = [
     totalMatches: 78,
     winRate: 68.9,
     region: "KR",
-    type: "Pro"
+    type: "Plus"
   },
   {
     id: 5,
@@ -92,7 +92,7 @@ export default function MyLeagues() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Pro":
+      case "Plus":
         return "bg-blue-500/20 text-blue-500 border-blue-500/30";
       case "Basic":
         return "bg-muted/20 text-muted-foreground border-muted/30";

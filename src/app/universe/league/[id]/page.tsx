@@ -32,8 +32,7 @@ const mockLeagueDetails = {
   createdAt: "2024-01-15",
   owner: "RiftMaster",
   region: "NA",
-  type: "Pro",
-  isPublic: true,
+  type: "Plus",
 };
 
 const mockRecentMembers = [
@@ -111,7 +110,7 @@ export default function LeagueDetail() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Pro":
+      case "Plus":
         return "bg-blue-500/20 text-blue-500 border-blue-500/30";
       case "Basic":
         return "bg-muted/20 text-muted-foreground border-muted/30";

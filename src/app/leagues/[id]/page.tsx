@@ -16,7 +16,6 @@ import {
   Trash2,
   AlertTriangle,
   Plus,
-  Clock,
   Target,
   Eye
 } from "lucide-react";
@@ -63,7 +62,7 @@ const mockLeagueOverview = {
   averageGameTime: "32분",
   lastActivity: "2024-02-15T14:30:00Z",
   role: "Owner",
-  type: "Pro",
+  type: "Plus",
   rules: [
     "다이아몬드 이상 티어만 가입 가능",
     "주간 토너먼트 참여 필수",
@@ -145,7 +144,6 @@ const mockMatches = [
     code: "CHAMP001",
     status: "completed",
     participants: 10,
-    maxParticipants: 10,
     createdAt: "2024-02-15T10:00:00Z",
     completedAt: "2024-02-15T10:28:00Z",
     duration: "28분",
@@ -158,7 +156,6 @@ const mockMatches = [
     code: "CHAMP002",
     status: "active",
     participants: 8,
-    maxParticipants: 10,
     createdAt: "2024-02-15T14:30:00Z",
     completedAt: null,
     duration: "진행중",
@@ -171,7 +168,6 @@ const mockMatches = [
     code: "CHAMP003",
     status: "completed",
     participants: 10,
-    maxParticipants: 10,
     createdAt: "2024-02-14T20:00:00Z",
     completedAt: "2024-02-14T20:35:00Z",
     duration: "35분",
@@ -248,7 +244,6 @@ const positionOptions = [
 
 const statusOptions = [
   { value: "all", label: "모든 상태" },
-  { value: "pending", label: "대기중" },
   { value: "active", label: "진행중" },
   { value: "completed", label: "완료" }
 ];
@@ -260,7 +255,7 @@ export default function LeaguePage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Pro":
+      case "Plus":
         return "bg-blue-500/20 text-blue-500 border-blue-500/30";
       case "Basic":
         return "bg-muted/20 text-muted-foreground border-muted/30";
@@ -298,8 +293,8 @@ export default function LeaguePage() {
       return matchesStatus;
     })
     .sort((a, b) => {
-      // 상태별 정렬: 대기 중 > 진행 중 > 완료
-      const statusOrder = { pending: 0, active: 1, completed: 2 };
+      // 상태별 정렬: 진행 중 > 완료
+      const statusOrder = { active: 0, completed: 1 };
       return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
     });
 
@@ -319,8 +314,6 @@ export default function LeaguePage() {
         return "bg-green-500/20 text-green-500 border-green-500/30";
       case "completed":
         return "bg-blue-500/20 text-blue-500 border-blue-500/30";
-      case "pending":
-        return "bg-yellow-500/20 text-yellow-500 border-yellow-500/30";
       default:
         return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
@@ -332,8 +325,6 @@ export default function LeaguePage() {
         return "진행중";
       case "completed":
         return "완료";
-      case "pending":
-        return "대기중";
       default:
         return "알 수 없음";
     }
@@ -345,8 +336,6 @@ export default function LeaguePage() {
         return Play;
       case "completed":
         return Trophy;
-      case "pending":
-        return Clock;
       default:
         return Target;
     }

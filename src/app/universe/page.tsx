@@ -17,11 +17,10 @@ const mockLeagues = [
     createdAt: "2024-01-15",
     owner: "RiftMaster",
     region: "NA",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 156,
     recentMatchDate: "2024-02-15",
     minTier: "Diamond",
-    isPublic: true
   },
   {
     id: 2,
@@ -35,7 +34,6 @@ const mockLeagues = [
     totalMatches: 89,
     recentMatchDate: "2024-02-14",
     minTier: "Bronze",
-    isPublic: true
   },
   {
     id: 3,
@@ -49,7 +47,6 @@ const mockLeagues = [
     totalMatches: 234,
     recentMatchDate: "2024-02-13",
     minTier: "Bronze",
-    isPublic: true
   },
   {
     id: 4,
@@ -63,7 +60,6 @@ const mockLeagues = [
     totalMatches: 67,
     recentMatchDate: "2024-02-12",
     minTier: "Silver",
-    isPublic: true
   },
   {
     id: 5,
@@ -73,11 +69,10 @@ const mockLeagues = [
     createdAt: "2024-01-05",
     owner: "ProCoach",
     region: "EUW",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 45,
     recentMatchDate: "2024-02-11",
     minTier: "Master",
-    isPublic: true
   },
   {
     id: 6,
@@ -91,7 +86,6 @@ const mockLeagues = [
     totalMatches: 123,
     recentMatchDate: "2024-02-10",
     minTier: "Gold",
-    isPublic: true
   },
   {
     id: 7,
@@ -101,11 +95,10 @@ const mockLeagues = [
     createdAt: "2024-01-20",
     owner: "KoreanPro",
     region: "KR",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 78,
     recentMatchDate: "2024-02-09",
     minTier: "Master",
-    isPublic: true
   },
   {
     id: 8,
@@ -119,7 +112,6 @@ const mockLeagues = [
     totalMatches: 345,
     recentMatchDate: "2024-02-08",
     minTier: "Bronze",
-    isPublic: true
   },
   {
     id: 9,
@@ -129,11 +121,10 @@ const mockLeagues = [
     createdAt: "2024-01-25",
     owner: "EUWChampion",
     region: "EUW",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 56,
     recentMatchDate: "2024-02-07",
     minTier: "Grandmaster",
-    isPublic: true
   },
   {
     id: 10,
@@ -147,7 +138,6 @@ const mockLeagues = [
     totalMatches: 189,
     recentMatchDate: "2024-02-06",
     minTier: "Bronze",
-    isPublic: true
   },
   {
     id: 11,
@@ -161,7 +151,6 @@ const mockLeagues = [
     totalMatches: 45,
     recentMatchDate: "2024-02-14",
     minTier: "Silver",
-    isPublic: true
   },
   {
     id: 12,
@@ -171,11 +160,10 @@ const mockLeagues = [
     createdAt: "2024-01-30",
     owner: "EUNEPro",
     region: "EUNE",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 134,
     recentMatchDate: "2024-02-13",
     minTier: "Diamond",
-    isPublic: true
   },
   {
     id: 13,
@@ -189,7 +177,6 @@ const mockLeagues = [
     totalMatches: 89,
     recentMatchDate: "2024-02-15",
     minTier: "Gold",
-    isPublic: true
   },
   {
     id: 14,
@@ -199,11 +186,10 @@ const mockLeagues = [
     createdAt: "2024-01-18",
     owner: "SEAChampion",
     region: "SEA",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 267,
     recentMatchDate: "2024-02-14",
     minTier: "Platinum",
-    isPublic: true
   },
   {
     id: 15,
@@ -213,11 +199,10 @@ const mockLeagues = [
     createdAt: "2024-02-01",
     owner: "ChinaPro",
     region: "CN",
-    type: "Pro",
+    type: "Plus",
     totalMatches: 78,
     recentMatchDate: "2024-02-12",
     minTier: "Master",
-    isPublic: true
   }
 ];
 
@@ -253,7 +238,7 @@ export default function Universe() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Pro":
+      case "Plus":
         return "bg-blue-500/20 text-blue-500 border-blue-500/30";
       case "Basic":
         return "bg-muted/20 text-muted-foreground border-muted/30";

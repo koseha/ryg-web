@@ -1,22 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Mock user data
-const mockUsers = [
-  {
-    id: 1,
-    name: "Faker",
-    email: "faker@lol.universe",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face",
-    role: "admin"
-  },
-  {
-    id: 2,
-    name: "RiftMaster",
-    email: "riftmaster@lol.universe",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-    role: "user"
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,30 +7,28 @@ export async function POST(request: NextRequest) {
     const { action, email, password, name } = body;
 
     if (action === 'login') {
-      // Mock login - in real app, validate credentials
-      const user = mockUsers.find(u => u.email === email);
-      
-      if (!user) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
         return NextResponse.json(
-          { success: false, error: 'User not found' },
-          { status: 404 }
+          { success: false, error: error.message },
+          { status: 401 }
         );
       }
-
-      // Mock JWT token
-      const token = `mock-jwt-token-${user.id}`;
 
       return NextResponse.json({
         success: true,
         data: {
-          user,
-          token
+          user: data.user,
+          session: data.session
         }
       });
     }
 
     if (action === 'register') {
-      // Mock registration
       if (!email || !password || !name) {
         return NextResponse.json(
           { success: false, error: 'Missing required fields' },
@@ -55,34 +36,26 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if user already exists
-      const existingUser = mockUsers.find(u => u.email === email);
-      if (existingUser) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
+
+      if (error) {
         return NextResponse.json(
-          { success: false, error: 'User already exists' },
-          { status: 409 }
+          { success: false, error: error.message },
+          { status: 400 }
         );
       }
-
-      // Create new user
-      const newUser = {
-        id: mockUsers.length + 1,
-        name,
-        email,
-        avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face&id=${mockUsers.length + 1}`,
-        role: "user"
-      };
-
-      mockUsers.push(newUser);
-
-      // Mock JWT token
-      const token = `mock-jwt-token-${newUser.id}`;
 
       return NextResponse.json({
         success: true,
         data: {
-          user: newUser,
-          token
+          user: data.user,
+          session: data.session
         }
       }, { status: 201 });
     }
@@ -99,25 +72,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const token = searchParams.get('token');
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (!token) {
+    if (error || !user) {
       return NextResponse.json(
-        { success: false, error: 'No token provided' },
-        { status: 401 }
-      );
-    }
-
-    // Mock token validation
-    const userId = token.replace('mock-jwt-token-', '');
-    const user = mockUsers.find(u => u.id === parseInt(userId));
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid token' },
+        { success: false, error: 'Not authenticated' },
         { status: 401 }
       );
     }

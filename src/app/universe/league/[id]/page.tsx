@@ -16,6 +16,7 @@ import { RoleBadge } from "@/components/ui/role-badge";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { PositionTags } from "@/components/ui/position-tags";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock data for league details
 const mockLeagueDetails = {
@@ -31,9 +32,9 @@ const mockLeagueDetails = {
   memberCount: 47,
   maxMembers: 100,
   createdAt: "2024-01-15",
-  creator: "RiftMaster",
+  owner: "RiftMaster",
   region: "NA",
-  type: "Competitive",
+  type: "Pro",
   isPublic: true,
 };
 
@@ -95,6 +96,18 @@ const mockRecentMembers = [
   }
 ];
 
+// 지역별 설명
+const regionDescriptions = {
+  NA: "북아메리카 지역을 위한 서버입니다.",
+  KR: "대한민국 사용자를 위한 서버입니다.",
+  JP: "일본 지역 사용자를 위한 서버입니다.",
+  EUW: "서유럽 지역을 위한 서버입니다.",
+  EUNE: "북유럽 및 동유럽 지역을 위한 서버입니다.",
+  TR: "튀르키예 지역 사용자를 위한 서버입니다.",
+  SEA: "동남아시아 지역을 위한 서버입니다.",
+  CN: "중국 지역을 위한 서버입니다."
+};
+
 export default function LeagueDetail() {
   const params = useParams();
   // const leagueId = params.id; // Removed unused variable
@@ -102,12 +115,10 @@ export default function LeagueDetail() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Competitive":
-        return "bg-destructive/20 text-destructive border-destructive/30";
-      case "Professional":
-        return "bg-primary/20 text-primary border-primary/30";
-      case "Educational":
-        return "bg-accent/20 text-accent border-accent/30";
+      case "Pro":
+        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+      case "Basic":
+        return "bg-muted/20 text-muted-foreground border-muted/30";
       default:
         return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
@@ -135,10 +146,19 @@ export default function LeagueDetail() {
                 <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(mockLeagueDetails.type)}`}>
                   {mockLeagueDetails.type}
                 </span>
-                <div className="flex items-center space-x-1 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{mockLeagueDetails.region}</span>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center space-x-1 text-muted-foreground cursor-help">
+                        <MapPin className="h-4 w-4" />
+                        <span className="text-sm">{mockLeagueDetails.region}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{regionDescriptions[mockLeagueDetails.region as keyof typeof regionDescriptions]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
@@ -160,7 +180,7 @@ export default function LeagueDetail() {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Crown className="h-4 w-4" />
-                  <span>생성자: {mockLeagueDetails.creator}</span>
+                  <span>책임자: {mockLeagueDetails.owner}</span>
                 </div>
               </div>
             </div>

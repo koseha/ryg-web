@@ -5,6 +5,7 @@ import { Users, Calendar, Eye, Crown, MapPin, Trophy, Clock } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 
 const mockLeagues = [
@@ -14,9 +15,9 @@ const mockLeagues = [
     description: "Elite league for diamond+ players. Competitive environment with weekly tournaments and coaching sessions.",
     memberCount: 47,
     createdAt: "2024-01-15",
-    creator: "RiftMaster",
+    owner: "RiftMaster",
     region: "NA",
-    type: "Competitive",
+    type: "Pro",
     totalMatches: 156,
     recentMatchDate: "2024-02-15",
     minTier: "Diamond",
@@ -28,9 +29,9 @@ const mockLeagues = [
     description: "Friendly community for all skill levels. Focus on fun, learning, and making friends.",
     memberCount: 23,
     createdAt: "2024-02-03",
-    creator: "SummonerFun",
+    owner: "SummonerFun",
     region: "EUW",
-    type: "Casual",
+    type: "Basic",
     totalMatches: 89,
     recentMatchDate: "2024-02-14",
     minTier: "Bronze",
@@ -42,9 +43,9 @@ const mockLeagues = [
     description: "Helping players climb from Bronze to Gold through mentorship and practice matches.",
     memberCount: 156,
     createdAt: "2024-01-28",
-    creator: "ClimbCoach",
+    owner: "ClimbCoach",
     region: "KR",
-    type: "Educational",
+    type: "Basic",
     totalMatches: 234,
     recentMatchDate: "2024-02-13",
     minTier: "Bronze",
@@ -56,9 +57,9 @@ const mockLeagues = [
     description: "For players who love late-night gaming sessions. Active from 10PM to 4AM EST.",
     memberCount: 89,
     createdAt: "2024-02-10",
-    creator: "NocturnalGamer",
+    owner: "NocturnalGamer",
     region: "NA",
-    type: "Casual",
+    type: "Basic",
     totalMatches: 67,
     recentMatchDate: "2024-02-12",
     minTier: "Silver",
@@ -70,9 +71,9 @@ const mockLeagues = [
     description: "Training ground for aspiring professional players. Strict requirements and high-level gameplay.",
     memberCount: 12,
     createdAt: "2024-01-05",
-    creator: "ProCoach",
+    owner: "ProCoach",
     region: "EUW",
-    type: "Professional",
+    type: "Pro",
     totalMatches: 45,
     recentMatchDate: "2024-02-11",
     minTier: "Master",
@@ -84,9 +85,9 @@ const mockLeagues = [
     description: "Perfect for busy professionals who can only play on weekends. Organized tournaments every Saturday.",
     memberCount: 67,
     createdAt: "2024-02-01",
-    creator: "WeekendGamer",
+    owner: "WeekendGamer",
     region: "NA",
-    type: "Casual",
+    type: "Basic",
     totalMatches: 123,
     recentMatchDate: "2024-02-10",
     minTier: "Gold",
@@ -98,9 +99,9 @@ const mockLeagues = [
     description: "한국 서버 마스터 이상 플레이어들을 위한 리그입니다. 높은 수준의 게임플레이와 전략적 토론을 제공합니다.",
     memberCount: 34,
     createdAt: "2024-01-20",
-    creator: "KoreanPro",
+    owner: "KoreanPro",
     region: "KR",
-    type: "Competitive",
+    type: "Pro",
     totalMatches: 78,
     recentMatchDate: "2024-02-09",
     minTier: "Master",
@@ -112,9 +113,9 @@ const mockLeagues = [
     description: "리그 오브 레전드를 처음 시작하는 분들을 위한 친화적인 커뮤니티입니다. 기초부터 차근차근 배워보세요.",
     memberCount: 201,
     createdAt: "2024-01-10",
-    creator: "BeginnerGuide",
+    owner: "BeginnerGuide",
     region: "KR",
-    type: "Educational",
+    type: "Basic",
     totalMatches: 345,
     recentMatchDate: "2024-02-08",
     minTier: "Bronze",
@@ -126,9 +127,9 @@ const mockLeagues = [
     description: "유럽 서버의 엘리트 플레이어들이 모인 리그입니다. 국제적인 경쟁을 경험해보세요.",
     memberCount: 28,
     createdAt: "2024-01-25",
-    creator: "EUWChampion",
+    owner: "EUWChampion",
     region: "EUW",
-    type: "Professional",
+    type: "Pro",
     totalMatches: 56,
     recentMatchDate: "2024-02-07",
     minTier: "Grandmaster",
@@ -140,15 +141,97 @@ const mockLeagues = [
     description: "진지하지 않고 재미있게 게임을 즐기고 싶은 분들을 위한 리그입니다. 스트레스 없이 즐겨보세요!",
     memberCount: 145,
     createdAt: "2024-02-05",
-    creator: "FunGamer",
+    owner: "FunGamer",
     region: "NA",
-    type: "Casual",
+    type: "Basic",
     totalMatches: 189,
     recentMatchDate: "2024-02-06",
     minTier: "Bronze",
     isPublic: true
+  },
+  {
+    id: 11,
+    name: "Japan Rising Stars",
+    description: "일본 서버의 신예 플레이어들을 위한 리그입니다. 함께 성장하고 경쟁해보세요.",
+    memberCount: 78,
+    createdAt: "2024-02-12",
+    owner: "JapanGamer",
+    region: "JP",
+    type: "Basic",
+    totalMatches: 45,
+    recentMatchDate: "2024-02-14",
+    minTier: "Silver",
+    isPublic: true
+  },
+  {
+    id: 12,
+    name: "EUNE Champions",
+    description: "동유럽 및 북유럽 지역의 챔피언들을 위한 리그입니다.",
+    memberCount: 92,
+    createdAt: "2024-01-30",
+    owner: "EUNEPro",
+    region: "EUNE",
+    type: "Pro",
+    totalMatches: 134,
+    recentMatchDate: "2024-02-13",
+    minTier: "Diamond",
+    isPublic: true
+  },
+  {
+    id: 13,
+    name: "Turkey Gaming Hub",
+    description: "튀르키예 지역 게이머들을 위한 활발한 커뮤니티입니다.",
+    memberCount: 156,
+    createdAt: "2024-02-08",
+    owner: "TurkeyGamer",
+    region: "TR",
+    type: "Basic",
+    totalMatches: 89,
+    recentMatchDate: "2024-02-15",
+    minTier: "Gold",
+    isPublic: true
+  },
+  {
+    id: 14,
+    name: "SEA Warriors",
+    description: "동남아시아 지역의 전사들을 위한 리그입니다.",
+    memberCount: 203,
+    createdAt: "2024-01-18",
+    owner: "SEAChampion",
+    region: "SEA",
+    type: "Pro",
+    totalMatches: 267,
+    recentMatchDate: "2024-02-14",
+    minTier: "Platinum",
+    isPublic: true
+  },
+  {
+    id: 15,
+    name: "China Elite",
+    description: "중국 지역의 엘리트 플레이어들을 위한 리그입니다.",
+    memberCount: 45,
+    createdAt: "2024-02-01",
+    owner: "ChinaPro",
+    region: "CN",
+    type: "Pro",
+    totalMatches: 78,
+    recentMatchDate: "2024-02-12",
+    minTier: "Master",
+    isPublic: true
   }
 ];
+
+// 지역별 설명
+const regionDescriptions = {
+  NA: "북아메리카 지역을 위한 서버입니다.",
+  KR: "대한민국 사용자를 위한 서버입니다.",
+  JP: "일본 지역 사용자를 위한 서버입니다.",
+  EUW: "서유럽 지역을 위한 서버입니다.",
+  EUNE: "북유럽 및 동유럽 지역을 위한 서버입니다.",
+  TR: "튀르키예 지역 사용자를 위한 서버입니다.",
+  SEA: "동남아시아 지역을 위한 서버입니다.",
+  CN: "중국 지역을 위한 서버입니다."
+};
 
 export default function Universe() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -170,12 +253,10 @@ export default function Universe() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Competitive":
-        return "bg-destructive/20 text-destructive border-destructive/30";
-      case "Professional":
-        return "bg-primary/20 text-primary border-primary/30";
-      case "Educational":
-        return "bg-accent/20 text-accent border-accent/30";
+      case "Pro":
+        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
+      case "Basic":
+        return "bg-muted/20 text-muted-foreground border-muted/30";
       default:
         return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
@@ -232,9 +313,10 @@ export default function Universe() {
           {filteredLeagues.map((league, index) => (
             <div
               key={league.id}
-              className="card-feature group animate-fade-in"
+              className="card-feature group animate-fade-in flex flex-col h-[320px]"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
+              {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   <Crown className="h-5 w-5 text-primary" />
@@ -242,21 +324,35 @@ export default function Universe() {
                     {league.type}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{league.region}</span>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center space-x-1 text-muted-foreground cursor-help">
+                        <MapPin className="h-4 w-4" />
+                        <span className="text-sm">{league.region}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{regionDescriptions[league.region as keyof typeof regionDescriptions]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
+              {/* Title */}
               <h3 className="text-xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
                 {league.name}
               </h3>
 
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
-                {league.description}
-              </p>
+              {/* Description - Fixed height */}
+              <div className="flex-1 mb-3">
+                <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed h-[40px]">
+                  {league.description}
+                </p>
+              </div>
 
-              <div className="space-y-2 mb-6">
+              {/* Stats - Fixed height */}
+              <div className="space-y-2 mb-4 h-[60px]">
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4" />
@@ -279,10 +375,11 @@ export default function Universe() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* Footer - Fixed at bottom */}
+              <div className="flex items-center justify-between mt-auto">
                 <div className="text-sm">
-                  <span className="text-muted-foreground">생성자: </span>
-                  <span className="text-primary font-medium">{league.creator}</span>
+                  <span className="text-muted-foreground">책임자: </span>
+                  <span className="text-primary font-medium">{league.owner}</span>
                 </div>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/universe/league/${league.id}`}>

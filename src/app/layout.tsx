@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout/Layout";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,11 +23,13 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Layout>
-            {children}
-          </Layout>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <Layout>
+              {children}
+            </Layout>
+          </AuthProvider>
         </TooltipProvider>
       </body>
     </html>

@@ -6,10 +6,13 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Crown, Users, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDropdown } from "./UserDropdown";
+import { LoginButton } from "@/components/auth/LoginButton";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   const isActive = (path: string) => pathname === path;
 
@@ -50,9 +53,15 @@ export const Navbar = () => {
             })}
           </div>
 
-          {/* User Dropdown - Desktop */}
+          {/* User Section - Desktop */}
           <div className="hidden md:block">
-            <UserDropdown />
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            ) : user ? (
+              <UserDropdown />
+            ) : (
+              <LoginButton />
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -89,7 +98,13 @@ export const Navbar = () => {
                 );
               })}
               <div className="pt-4 border-t border-border">
-                <UserDropdown />
+                {loading ? (
+                  <div className="w-full h-10 rounded-lg bg-muted animate-pulse" />
+                ) : user ? (
+                  <UserDropdown />
+                ) : (
+                  <LoginButton className="w-full" />
+                )}
               </div>
             </div>
           </div>

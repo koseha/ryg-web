@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { RoleBadge } from "@/components/ui/role-badge";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { PositionTags } from "@/components/ui/position-tags";
-import { CopyButton } from "@/components/ui/copy-button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock data for league details
@@ -30,7 +29,6 @@ const mockLeagueDetails = {
     "불참 시 사전 공지 필수"
   ],
   memberCount: 47,
-  maxMembers: 100,
   createdAt: "2024-01-15",
   owner: "RiftMaster",
   region: "NA",
@@ -172,7 +170,7 @@ export default function LeagueDetail() {
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Users className="h-4 w-4" />
-                  <span>{mockLeagueDetails.memberCount}/{mockLeagueDetails.maxMembers}명 참여중</span>
+                  <span>{mockLeagueDetails.memberCount}명 참여중</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-4 w-4" />
@@ -196,15 +194,6 @@ export default function LeagueDetail() {
                 가입 신청하기
               </Button>
               
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">리그 코드</p>
-                <div className="flex items-center space-x-2">
-                  <code className="px-3 py-2 bg-secondary rounded-lg font-mono text-sm">
-                    {mockLeagueDetails.id.toString().padStart(6, '0')}
-                  </code>
-                  <CopyButton text={mockLeagueDetails.id.toString().padStart(6, '0')} />
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -228,25 +217,27 @@ export default function LeagueDetail() {
           <h3 className="text-xl font-bold text-foreground mb-4">운영진</h3>
           
           <div className="space-y-4">
-            {mockRecentMembers.slice(0, 3).map((member) => (
-              <div key={member.id} className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg">
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="h-10 w-10 rounded-full border-2 border-primary/30"
-                />
-                <div>
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium text-foreground">{member.name}</span>
-                    <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
-                    <PositionTags positions={member.positions} />
+            {mockRecentMembers
+              .filter(member => member.role === "Owner" || member.role === "Admin")
+              .map((member) => (
+                <div key={member.id} className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg">
+                  <img
+                    src={member.avatar}
+                    alt={member.name}
+                    className="h-10 w-10 rounded-full border-2 border-primary/30"
+                  />
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-medium text-foreground">{member.name}</span>
+                      <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
+                      <PositionTags positions={member.positions} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 

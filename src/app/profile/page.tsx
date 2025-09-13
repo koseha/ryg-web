@@ -51,6 +51,9 @@ export default function UserProfile() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [editingProfile, setEditingProfile] = useState<UserProfile | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
@@ -107,16 +110,29 @@ export default function UserProfile() {
     fetchProfile();
   }, [user, toast]);
 
+  const handleEditStart = () => {
+    if (profile) {
+      setEditingProfile({ ...profile });
+      setIsEditing(true);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingProfile(null);
+    setIsEditing(false);
+    setNicknameError(null);
+  };
+
   const handleSave = async () => {
-    if (!profile) return;
+    if (!editingProfile) return;
 
     // 닉네임 검증
-    if (!profile.nickname || profile.nickname.trim().length < 2) {
+    if (!editingProfile.nickname || editingProfile.nickname.trim().length < 2) {
       setNicknameError("닉네임은 2자 이상이어야 합니다");
       return;
     }
 
-    if (profile.nickname.length > 20) {
+    if (editingProfile.nickname.length > 20) {
       setNicknameError("닉네임은 20자 이하여야 합니다");
       return;
     }
@@ -137,10 +153,10 @@ export default function UserProfile() {
           Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          nickname: profile.nickname.trim(),
-          tier: profile.tier,
-          positions: profile.positions,
-          avatar_url: profile.avatar_url,
+          nickname: editingProfile.nickname.trim(),
+          tier: editingProfile.tier,
+          positions: editingProfile.positions,
+          avatar_url: editingProfile.avatar_url,
         }),
       });
 
@@ -155,6 +171,7 @@ export default function UserProfile() {
           nickname: data.data.nickname || "사용자",
           avatar_url: data.data.avatar_url || null,
         });
+        setEditingProfile(null);
         setIsEditing(false);
         toast({
           title: "성공",
@@ -296,7 +313,7 @@ export default function UserProfile() {
           <div className="flex space-x-3">
             {isEditing ? (
               <>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                <Button variant="outline" onClick={handleEditCancel}>
                   취소
                 </Button>
                 <Button variant="hero" onClick={handleSave} disabled={isSaving}>
@@ -305,7 +322,7 @@ export default function UserProfile() {
                 </Button>
               </>
             ) : (
-              <Button variant="hero" onClick={() => setIsEditing(true)}>
+              <Button variant="hero" onClick={handleEditStart}>
                 <Edit className="mr-2 h-4 w-4" />
                 프로필 편집
               </Button>
@@ -344,9 +361,12 @@ export default function UserProfile() {
                   {isEditing ? (
                     <div>
                       <Input
-                        value={profile.nickname}
+                        value={editingProfile?.nickname || ""}
                         onChange={(e) => {
-                          setProfile({ ...profile, nickname: e.target.value });
+                          setEditingProfile({
+                            ...editingProfile!,
+                            nickname: e.target.value,
+                          });
                           setNicknameError(null);
                         }}
                         placeholder="닉네임을 입력하세요"
@@ -371,9 +391,12 @@ export default function UserProfile() {
                   </label>
                   {isEditing ? (
                     <select
-                      value={profile.tier || ""}
+                      value={editingProfile?.tier || ""}
                       onChange={(e) =>
-                        setProfile({ ...profile, tier: e.target.value })
+                        setEditingProfile({
+                          ...editingProfile!,
+                          tier: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground"
                     >
@@ -414,24 +437,24 @@ export default function UserProfile() {
                         >
                           <input
                             type="checkbox"
-                            checked={(profile.positions || []).includes(
+                            checked={(editingProfile?.positions || []).includes(
                               position
                             )}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setProfile({
-                                  ...profile,
+                                setEditingProfile({
+                                  ...editingProfile!,
                                   positions: [
-                                    ...(profile.positions || []),
+                                    ...(editingProfile?.positions || []),
                                     position,
                                   ],
                                 });
                               } else {
-                                setProfile({
-                                  ...profile,
-                                  positions: (profile.positions || []).filter(
-                                    (p) => p !== position
-                                  ),
+                                setEditingProfile({
+                                  ...editingProfile!,
+                                  positions: (
+                                    editingProfile?.positions || []
+                                  ).filter((p) => p !== position),
                                 });
                               }
                             }}

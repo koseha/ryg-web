@@ -1,97 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  Crown, 
-  Users, 
-  Calendar, 
-  MapPin, 
-  ArrowLeft, 
-  UserPlus
+import { useParams } from "next/navigation";
+import {
+  Crown,
+  Users,
+  Calendar,
+  MapPin,
+  ArrowLeft,
+  UserPlus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RoleBadge } from "@/components/ui/role-badge";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { PositionTags } from "@/components/ui/position-tags";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for league details
-const mockLeagueDetails = {
-  id: 1,
-  name: "Champions Arena",
-  description: "Elite league for diamond+ players. Competitive environment with weekly tournaments and coaching sessions. Join us for high-level gameplay and strategic discussions.",
-  rules: [
-    "다이아몬드 이상 티어만 가입 가능",
-    "주간 토너먼트 참여 필수",
-    "게임 내 매너 준수",
-    "불참 시 사전 공지 필수"
-  ],
-  memberCount: 47,
-  createdAt: "2024-01-15",
-  owner: "RiftMaster",
-  region: "NA",
-  type: "Plus",
-};
-
-const mockRecentMembers = [
-  {
-    id: 1,
-    name: "RiftMaster",
-    tier: "Challenger",
-    positions: ["Mid", "Top"],
-    role: "Owner",
-    joinedAt: "2024-01-15",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face",
-    winRate: 85.2,
-    matchesPlayed: 45
-  },
-  {
-    id: 2,
-    name: "ProGamer",
-    tier: "Grandmaster",
-    positions: ["Jungle", "Support"],
-    role: "Admin",
-    joinedAt: "2024-01-20",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-    winRate: 78.9,
-    matchesPlayed: 38
-  },
-  {
-    id: 3,
-    name: "DiamondPlayer",
-    tier: "Diamond",
-    positions: ["ADC", "Mid"],
-    role: "Member",
-    joinedAt: "2024-02-01",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face",
-    winRate: 72.1,
-    matchesPlayed: 42
-  },
-  {
-    id: 4,
-    name: "PlatinumRiser",
-    tier: "Platinum",
-    positions: ["Top", "Jungle"],
-    role: "Member",
-    joinedAt: "2024-02-05",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face",
-    winRate: 65.4,
-    matchesPlayed: 28
-  },
-  {
-    id: 5,
-    name: "GoldClimber",
-    tier: "Gold",
-    positions: ["Support", "ADC"],
-    role: "Member",
-    joinedAt: "2024-02-10",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face",
-    winRate: 58.3,
-    matchesPlayed: 15
-  }
-];
+// Types
+interface LeagueDetails {
+  id: number;
+  name: string;
+  description: string;
+  rules: string[];
+  member_count: number;
+  created_at: string;
+  owner: {
+    id: string;
+    name: string;
+    avatar: string | null;
+    tier: string;
+    positions: string[];
+  } | null;
+  region: string;
+  type: string;
+  recent_members: Array<{
+    id: string;
+    name: string;
+    tier: string;
+    positions: string[];
+    role: string;
+    joinedAt: string;
+    avatar: string | null;
+    winRate: number;
+    matchesPlayed: number;
+  }>;
+}
 
 // 지역별 설명
 const regionDescriptions = {
@@ -102,11 +64,132 @@ const regionDescriptions = {
   EUNE: "북유럽 및 동유럽 지역을 위한 서버입니다.",
   TR: "튀르키예 지역 사용자를 위한 서버입니다.",
   SEA: "동남아시아 지역을 위한 서버입니다.",
-  CN: "중국 지역을 위한 서버입니다."
+  CN: "중국 지역을 위한 서버입니다.",
 };
 
 export default function LeagueDetail() {
+  const params = useParams();
+  const { toast } = useToast();
   const [showJoinForm, setShowJoinForm] = useState(false);
+  const [leagueData, setLeagueData] = useState<LeagueDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinForm, setJoinForm] = useState({
+    tier: "",
+    positions: [] as string[],
+    message: "",
+  });
+
+  // Fetch league data
+  useEffect(() => {
+    const fetchLeagueData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/leagues/${params.id}`);
+        const result = await response.json();
+
+        if (result.success) {
+          setLeagueData(result.data);
+        } else {
+          setError(result.error || "리그 정보를 불러올 수 없습니다");
+        }
+      } catch {
+        setError("리그 정보를 불러오는 중 오류가 발생했습니다");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchLeagueData();
+    }
+  }, [params.id]);
+
+  // Handle join form submission
+  const handleJoinSubmit = async () => {
+    if (!joinForm.tier || joinForm.positions.length === 0) {
+      toast({
+        title: "입력 오류",
+        description: "티어와 포지션을 모두 선택해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setJoinLoading(true);
+      const response = await fetch(`/api/leagues/${params.id}/join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(joinForm),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "가입 신청 완료",
+          description: result.message || "가입 신청이 완료되었습니다",
+        });
+        setShowJoinForm(false);
+        setJoinForm({ tier: "", positions: [], message: "" });
+      } else {
+        toast({
+          title: "가입 신청 실패",
+          description: result.error || "가입 신청 중 오류가 발생했습니다",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "가입 신청 실패",
+        description: "가입 신청 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  // Handle position selection
+  const handlePositionToggle = (position: string) => {
+    setJoinForm((prev) => ({
+      ...prev,
+      positions: prev.positions.includes(position)
+        ? prev.positions.filter((p) => p !== position)
+        : [...prev.positions, position],
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen py-8 px-4 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>리그 정보를 불러오는 중...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !leagueData) {
+    return (
+      <div className="min-h-screen py-8 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">오류 발생</h2>
+          <p className="text-muted-foreground mb-6">
+            {error || "리그 정보를 찾을 수 없습니다"}
+          </p>
+          <Button asChild>
+            <Link href="/universe">리그 목록으로 돌아가기</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -138,121 +221,168 @@ export default function LeagueDetail() {
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-4">
                 <Crown className="h-8 w-8 text-primary" />
-                <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(mockLeagueDetails.type)}`}>
-                  {mockLeagueDetails.type}
+                <span
+                  className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(
+                    leagueData.type
+                  )}`}
+                >
+                  {leagueData.type}
                 </span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center space-x-1 text-muted-foreground cursor-help">
                         <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{mockLeagueDetails.region}</span>
+                        <span className="text-sm">{leagueData.region}</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{regionDescriptions[mockLeagueDetails.region as keyof typeof regionDescriptions]}</p>
+                      <p>
+                        {
+                          regionDescriptions[
+                            leagueData.region as keyof typeof regionDescriptions
+                          ]
+                        }
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
-                {mockLeagueDetails.name}
+                {leagueData.name}
               </h1>
 
               <p className="text-xl text-muted-foreground mb-6 leading-relaxed">
-                {mockLeagueDetails.description}
+                {leagueData.description}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Users className="h-4 w-4" />
-                  <span>{mockLeagueDetails.memberCount}명 참여중</span>
+                  <span>{leagueData.member_count}명 참여중</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-4 w-4" />
-                  <span>생성일: {new Date(mockLeagueDetails.createdAt).toLocaleDateString()}</span>
+                  <span>
+                    생성일:{" "}
+                    {new Date(leagueData.created_at).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Crown className="h-4 w-4" />
-                  <span>책임자: {mockLeagueDetails.owner}</span>
+                  <span>책임자: {leagueData.owner?.name || "Unknown"}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col space-y-4">
-              <Button 
-                variant="hero" 
-                size="lg" 
+              <Button
+                variant="hero"
+                size="lg"
                 onClick={() => setShowJoinForm(true)}
                 className="text-lg px-8 py-4"
               >
                 <UserPlus className="mr-2 h-5 w-5" />
                 가입 신청하기
               </Button>
-              
             </div>
           </div>
         </div>
-
 
         {/* Rules */}
         <div className="card-glass p-6 mb-8">
           <h3 className="text-xl font-bold text-foreground mb-4">리그 규칙</h3>
           <ul className="space-y-2">
-            {mockLeagueDetails.rules.map((rule, index) => (
-              <li key={index} className="flex items-start space-x-2 text-muted-foreground">
-                <span className="text-primary mt-1">•</span>
-                <span>{rule}</span>
-              </li>
-            ))}
+            {leagueData.rules && leagueData.rules.length > 0 ? (
+              leagueData.rules.map((rule, index) => (
+                <li
+                  key={index}
+                  className="flex items-start space-x-2 text-muted-foreground"
+                >
+                  <span className="text-primary mt-1">•</span>
+                  <span>{rule}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-muted-foreground">등록된 규칙이 없습니다.</li>
+            )}
           </ul>
         </div>
 
         {/* Operating Team */}
         <div className="card-glass p-6 mb-8">
           <h3 className="text-xl font-bold text-foreground mb-4">운영진</h3>
-          
+
           <div className="space-y-4">
-            {mockRecentMembers
-              .filter(member => member.role === "Owner" || member.role === "Admin")
-              .map((member) => (
-                <div key={member.id} className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg">
-                  <Image
-                    src={member.avatar}
-                    alt={member.name}
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 rounded-full border-2 border-primary/30"
-                  />
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-medium text-foreground">{member.name}</span>
-                      <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
-                      <PositionTags positions={member.positions} />
-                    </div>
+            {leagueData.recent_members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg"
+              >
+                <Image
+                  src={member.avatar || "/default-avatar.png"}
+                  alt={member.name}
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-full border-2 border-primary/30"
+                />
+                <div>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="font-medium text-foreground">
+                      {member.name}
+                    </span>
+                    <RoleBadge
+                      role={member.role as "Owner" | "Admin" | "Member"}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <TierBadge
+                      tier={
+                        member.tier as
+                          | "Challenger"
+                          | "Grandmaster"
+                          | "Master"
+                          | "Diamond"
+                          | "Platinum"
+                          | "Gold"
+                          | "Silver"
+                          | "Bronze"
+                      }
+                    />
+                    <PositionTags positions={member.positions} />
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
+            {leagueData.recent_members.length === 0 && (
+              <p className="text-muted-foreground text-center py-4">
+                운영진 정보가 없습니다.
+              </p>
+            )}
           </div>
         </div>
-
 
         {/* Join Application Modal */}
         {showJoinForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="card-glass p-8 max-w-md w-full">
-              <h2 className="text-2xl font-bold text-foreground mb-6">가입 신청</h2>
-              
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                가입 신청
+              </h2>
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     티어 선택 (필수)
                   </label>
-                  <select className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground">
+                  <select
+                    className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground"
+                    value={joinForm.tier}
+                    onChange={(e) =>
+                      setJoinForm((prev) => ({ ...prev, tier: e.target.value }))
+                    }
+                  >
                     <option value="">티어를 선택하세요</option>
                     <option value="Bronze">브론즈</option>
                     <option value="Silver">실버</option>
@@ -264,24 +394,31 @@ export default function LeagueDetail() {
                     <option value="Challenger">챌린저</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     포지션 선택 (필수, 다중 선택)
                   </label>
                   <div className="space-y-2">
-                    {["Top", "Jungle", "Mid", "ADC", "Support"].map(position => (
-                      <label key={position} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          className="rounded border-border"
-                        />
-                        <span className="text-foreground">{position}</span>
-                      </label>
-                    ))}
+                    {["Top", "Jungle", "Mid", "ADC", "Support"].map(
+                      (position) => (
+                        <label
+                          key={position}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            className="rounded border-border"
+                            checked={joinForm.positions.includes(position)}
+                            onChange={() => handlePositionToggle(position)}
+                          />
+                          <span className="text-foreground">{position}</span>
+                        </label>
+                      )
+                    )}
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     신청 메시지 (선택)
@@ -290,19 +427,38 @@ export default function LeagueDetail() {
                     className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground"
                     rows={3}
                     placeholder="가입 신청 메시지를 입력하세요"
+                    value={joinForm.message}
+                    onChange={(e) =>
+                      setJoinForm((prev) => ({
+                        ...prev,
+                        message: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3 mt-6">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowJoinForm(false)}
+                  disabled={joinLoading}
                 >
                   취소
                 </Button>
-                <Button variant="hero">
-                  가입 신청
+                <Button
+                  variant="hero"
+                  onClick={handleJoinSubmit}
+                  disabled={joinLoading}
+                >
+                  {joinLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      신청 중...
+                    </>
+                  ) : (
+                    "가입 신청"
+                  )}
                 </Button>
               </div>
             </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -11,24 +11,40 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Auth callback error:', error);
-          router.push('/?error=auth_failed');
-          return;
-        }
+        console.log("OAuth callback page loaded, waiting for session...");
 
-        if (data.session) {
-          // 로그인 성공
-          router.push('/');
-        } else {
-          // 세션이 없음
-          router.push('/?error=no_session');
-        }
+        // Supabase가 자동으로 URL에서 세션을 감지하도록 대기
+        // detectSessionInUrl: true 설정으로 자동 처리됨
+        setTimeout(async () => {
+          try {
+            const { data: sessionData, error: sessionError } =
+              await supabase.auth.getSession();
+
+            if (sessionError) {
+              console.error("Session error:", sessionError);
+              router.push(
+                `/?error=session_error&message=${encodeURIComponent(
+                  sessionError.message
+                )}`
+              );
+              return;
+            }
+
+            if (sessionData.session) {
+              console.log("Login successful:", sessionData.session.user.email);
+              router.push("/");
+            } else {
+              console.error("No session found after OAuth callback");
+              router.push("/?error=no_session");
+            }
+          } catch (error) {
+            console.error("Unexpected error during session check:", error);
+            router.push("/?error=unexpected");
+          }
+        }, 3000); // 3초 대기
       } catch (error) {
-        console.error('Unexpected error:', error);
-        router.push('/?error=unexpected');
+        console.error("Unexpected error:", error);
+        router.push("/?error=unexpected");
       }
     };
 

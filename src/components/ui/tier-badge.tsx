@@ -1,13 +1,18 @@
 import { cn } from "@/lib/utils";
 
 interface TierBadgeProps {
-  tier: "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Master" | "Grandmaster" | "Challenger";
+  tier: "Unranked" | "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Master" | "Grandmaster" | "Challenger";
   className?: string;
 }
 
 export const TierBadge = ({ tier, className }: TierBadgeProps) => {
   const getTierConfig = (tier: string) => {
     switch (tier) {
+      case "Unranked":
+        return {
+          className: "bg-gray-500/20 text-gray-500 border-gray-500/30",
+          label: "언랭크"
+        };
       case "Bronze":
         return {
           className: "bg-orange-500/20 text-orange-500 border-orange-500/30",

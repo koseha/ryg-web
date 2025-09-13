@@ -1,24 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
-    const leagueId = searchParams.get('leagueId');
-    const status = searchParams.get('status');
+    const leagueId = searchParams.get("leagueId");
+    const status = searchParams.get("status");
 
-    let query = supabase
-      .from('matches')
-      .select('*');
+    let query = supabase.from("matches").select("*");
 
     // Filter by league ID
     if (leagueId) {
-      query = query.eq('league_id', leagueId);
+      query = query.eq("league_id", leagueId);
     }
 
     // Filter by status
     if (status) {
-      query = query.eq('status', status);
+      query = query.eq("status", status);
     }
 
     const { data, error } = await query;
@@ -33,11 +32,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: data || [],
-      total: data?.length || 0
+      total: data?.length || 0,
     });
   } catch {
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch matches' },
+      { success: false, error: "Failed to fetch matches" },
       { status: 500 }
     );
   }
@@ -45,21 +44,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.leagueId || !body.title || !body.description) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
+        { success: false, error: "Not authenticated" },
         { status: 401 }
       );
     }
@@ -70,13 +73,13 @@ export async function POST(request: NextRequest) {
 
     // Create new match
     const { data, error } = await supabase
-      .from('matches')
+      .from("matches")
       .insert({
         league_id: body.leagueId,
         title: body.title,
         description: body.description,
         riot_tournament_code: matchCode,
-        created_by: user.id
+        created_by: user.id,
       })
       .select()
       .single();
@@ -88,13 +91,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data,
+      },
+      { status: 201 }
+    );
   } catch {
     return NextResponse.json(
-      { success: false, error: 'Failed to create match' },
+      { success: false, error: "Failed to create match" },
       { status: 500 }
     );
   }

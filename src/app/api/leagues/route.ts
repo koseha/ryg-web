@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const sortBy = searchParams.get("sortBy") || "newest";
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createServerSupabaseClient();
     const body = await request.json();
 
     // Validate required fields

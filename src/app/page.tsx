@@ -1,9 +1,71 @@
-import Link from "next/link";
-import { Crown, Users, Zap, ArrowRight, Shield, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-bg.jpg";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import {
+  Crown,
+  Users,
+  Zap,
+  ArrowRight,
+  Shield,
+  Trophy,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import heroBg from "@/assets/hero-bg.jpg";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+
+    if (error) {
+      let displayMessage = "";
+      switch (error) {
+        case "no_session":
+          displayMessage = "로그인 세션이 만료되었습니다. 다시 로그인해주세요.";
+          break;
+        case "oauth_error":
+          displayMessage = `OAuth 오류: ${message || "알 수 없는 오류"}`;
+          break;
+        case "no_code":
+          displayMessage = "인증 코드를 받지 못했습니다. 다시 시도해주세요.";
+          break;
+        case "exchange_failed":
+          displayMessage = "인증 코드 교환에 실패했습니다. 다시 시도해주세요.";
+          break;
+        case "auth_failed":
+          displayMessage = "인증에 실패했습니다. 다시 시도해주세요.";
+          break;
+        case "unexpected":
+          displayMessage =
+            "예상치 못한 오류가 발생했습니다. 다시 시도해주세요.";
+          break;
+        case "session_error":
+          displayMessage = `세션 오류: ${message || "알 수 없는 오류"}`;
+          break;
+        case "sign_out":
+          displayMessage = "로그아웃되었습니다.";
+          break;
+        case "timeout":
+          displayMessage = "로그인 시간이 초과되었습니다. 다시 시도해주세요.";
+          break;
+        case "exchange_failed":
+          displayMessage = `인증 코드 교환 실패: ${
+            message || "알 수 없는 오류"
+          }`;
+          break;
+        default:
+          displayMessage = `오류가 발생했습니다: ${error}`;
+      }
+      setErrorMessage(displayMessage);
+    }
+  }, [searchParams]);
   const features = [
     {
       icon: Crown,
@@ -28,6 +90,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="fixed top-4 left-4 right-4 z-50">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden min-h-[80vh] flex items-center">
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95"></div>
@@ -151,5 +223,13 @@ export default function Home() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

@@ -46,20 +46,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const response = await fetch("/api/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      console.log("Starting Google OAuth...");
+
+      // 클라이언트 사이드에서 직접 OAuth 시작
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
-        body: JSON.stringify({ action: "google-login" }),
       });
 
-      const data = await response.json();
+      if (error) {
+        console.error("OAuth error:", error);
+        throw new Error(error.message || "OAuth failed");
+      }
 
-      if (data.success && data.data.url) {
-        window.location.href = data.data.url;
+      if (data.url) {
+        console.log("Redirecting to OAuth URL...");
+        window.location.href = data.url;
       } else {
-        throw new Error(data.error || "Login failed");
+        throw new Error("No OAuth URL received");
       }
     } catch (error) {
       console.error("Google login error:", error);

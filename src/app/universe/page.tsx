@@ -365,7 +365,7 @@ export default function Universe() {
               </Button>
             ) : (
               <LoginButton variant="hero" className="px-8 py-3">
-                Google로 로그인
+                로그인
               </LoginButton>
             )}
           </div>

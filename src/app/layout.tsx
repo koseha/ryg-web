@@ -10,8 +10,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LOL Arena Nexus - 게임 커뮤니티 플랫폼",
-  description: "친구들과 리그를 만들고, 매치를 생성하며, 함께 즐기는 새로운 방법",
+  title: "RYG (Record Your Games) - 게임 커뮤니티 플랫폼",
+  description:
+    "친구들과 리그를 만들고, 매치를 생성하며, 함께 즐기는 새로운 방법",
 };
 
 export default function RootLayout({
@@ -26,9 +27,7 @@ export default function RootLayout({
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <Layout>
-              {children}
-            </Layout>
+            <Layout>{children}</Layout>
           </AuthProvider>
         </TooltipProvider>
       </body>

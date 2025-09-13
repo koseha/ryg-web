@@ -1,16 +1,28 @@
 "use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginButtonProps {
   className?: string;
   children?: React.ReactNode;
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "hero";
 }
 
-export function LoginButton({ className, children }: LoginButtonProps) {
+export function LoginButton({
+  className,
+  children,
+  variant = "outline",
+}: LoginButtonProps) {
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +31,7 @@ export function LoginButton({ className, children }: LoginButtonProps) {
       setLoading(true);
       await signInWithGoogle();
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       // TODO: 에러 토스트 표시
     } finally {
       setLoading(false);
@@ -31,7 +43,7 @@ export function LoginButton({ className, children }: LoginButtonProps) {
       onClick={handleGoogleLogin}
       disabled={loading}
       className={className}
-      variant="outline"
+      variant={variant}
     >
       {loading ? (
         <LoadingSpinner size="sm" />
@@ -55,7 +67,7 @@ export function LoginButton({ className, children }: LoginButtonProps) {
           />
         </svg>
       )}
-      {children || 'Google로 로그인'}
+      {children || "Google로 로그인"}
     </Button>
   );
 }

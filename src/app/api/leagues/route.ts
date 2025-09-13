@@ -1,29 +1,48 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'newest';
+    const search = searchParams.get("search");
+    const sortBy = searchParams.get("sortBy") || "newest";
+    const region = searchParams.get("region");
+    const type = searchParams.get("type");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "12");
+    const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('leagues')
-      .select('*');
+    // Build query with filters
+    let query = supabase.from("leagues").select("*", { count: "exact" });
 
     // Filter by search term
     if (search) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
-    // Sort leagues
-    if (sortBy === 'newest') {
-      query = query.order('created_at', { ascending: false });
-    } else if (sortBy === 'members') {
-      query = query.order('member_count', { ascending: false });
+    // Filter by region
+    if (region) {
+      query = query.eq("region", region);
     }
 
-    const { data, error } = await query;
+    // Filter by type
+    if (type) {
+      query = query.eq("type", type);
+    }
+
+    // Sort leagues
+    if (sortBy === "newest") {
+      query = query.order("created_at", { ascending: false });
+    } else if (sortBy === "members") {
+      query = query.order("member_count", { ascending: false });
+    } else if (sortBy === "name") {
+      query = query.order("name", { ascending: true });
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
 
     if (error) {
       return NextResponse.json(
@@ -32,14 +51,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const total = count || 0;
+    const hasMore = offset + limit < total;
+
     return NextResponse.json({
       success: true,
       data: data || [],
-      total: data?.length || 0
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-  } catch {
+  } catch (error) {
+    console.error("Error fetching leagues:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch leagues' },
+      { success: false, error: "Failed to fetch leagues" },
       { status: 500 }
     );
   }
@@ -48,34 +77,37 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.name || !body.description || !body.region || !body.type) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
+        { success: false, error: "Not authenticated" },
         { status: 401 }
       );
     }
 
     // Create new league
     const { data, error } = await supabase
-      .from('leagues')
+      .from("leagues")
       .insert({
         name: body.name,
         description: body.description,
         region: body.region,
         type: body.type,
         owner_id: user.id,
-        rules: body.rules || []
+        rules: body.rules || [],
       })
       .select()
       .single();
@@ -87,13 +119,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        data,
+      },
+      { status: 201 }
+    );
   } catch {
     return NextResponse.json(
-      { success: false, error: 'Failed to create league' },
+      { success: false, error: "Failed to create league" },
       { status: 500 }
     );
   }

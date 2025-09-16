@@ -21,10 +21,10 @@ async function handleProfileRequest(
           .from("profiles")
           .insert({
             id: userId,
-            email: "", // 이메일은 별도로 가져와야 함
             nickname: "사용자",
             avatar_url: null,
             tier: "Unranked",
+            role: "user",
             positions: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -157,6 +157,24 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Authorization 헤더에서 토큰을 가져왔다면, 해당 토큰으로 새로운 Supabase 클라이언트 생성
+    let supabaseClient = supabase;
+    if (authHeader && user) {
+      const token = authHeader.replace("Bearer ", "");
+      const { createClient } = await import("@supabase/supabase-js");
+      supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { nickname, tier, positions, avatar_url } = body;
 
@@ -210,6 +228,7 @@ export async function PUT(request: NextRequest) {
       "Silver",
       "Gold",
       "Platinum",
+      "Emerald",
       "Diamond",
       "Master",
       "Grandmaster",
@@ -258,7 +277,18 @@ export async function PUT(request: NextRequest) {
     if (positions) updateData.positions = positions;
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
 
-    const { data: updatedProfile, error: updateError } = await supabase
+    console.log("updateData::", updateData);
+
+    // 쿠키 정보 확인
+    const cookieStore = await import('next/headers').then(m => m.cookies());
+    const allCookies = cookieStore.getAll();
+    console.log("All cookies:", allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
+
+    // 현재 세션 상태 확인
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    console.log("Current session:", session?.user?.id, sessionError);
+
+    const { data: updatedProfile, error: updateError } = await supabaseClient
       .from("profiles")
       .update(updateData)
       .eq("id", user.id)
@@ -274,7 +304,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 업데이트된 통계 조회
-    const stats = await getUserStats(supabase, user.id);
+    const stats = await getUserStats(supabaseClient, user.id);
 
     return NextResponse.json({
       success: true,

@@ -63,13 +63,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      console.log("Starting Google OAuth...");
-
       // 클라이언트 사이드에서 직접 OAuth 시작
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${
+            process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+          }/auth/callback`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -83,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.url) {
-        console.log("Redirecting to OAuth URL...");
         window.location.href = data.url;
       } else {
         throw new Error("No OAuth URL received");

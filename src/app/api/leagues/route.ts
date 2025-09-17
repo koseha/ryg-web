@@ -5,6 +5,14 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
+    const scope = searchParams.get("scope") || "all"; // all 또는 my
+    
+    // 내가 가입한 리그 조회
+    if (scope === "my") {
+      return await getMyLeagues(request, supabase);
+    }
+    
+    // 모든 리그 조회 (기존 로직)
     const search = searchParams.get("search");
     const sortBy = searchParams.get("sortBy") || "newest";
     const region = searchParams.get("region");
@@ -133,6 +141,99 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json(
       { success: false, error: "Failed to create league" },
+      { status: 500 }
+    );
+  }
+}
+
+// 내가 가입한 리그 조회 함수
+async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<typeof createClient>>) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "12");
+    const offset = (page - 1) * limit;
+
+    // 인증 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    // 내가 가입한 리그 조회
+    const { data, error, count } = await supabase
+      .from("league_members")
+      .select(`
+        *,
+        leagues (*)
+      `, { count: "exact" })
+      .eq("user_id", user.id)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+
+    // 데이터 변환
+    const transformedData = await Promise.all(
+      data?.map(async (member) => {
+        // 리그 소유자 정보 별도 조회
+        let owner = null;
+        if (member.leagues?.owner_id) {
+          const { data: ownerProfile } = await supabase
+            .from("profiles")
+            .select("id, nickname, avatar_url")
+            .eq("id", member.leagues.owner_id)
+            .single();
+          owner = ownerProfile;
+        }
+
+        return {
+          id: member.leagues?.id,
+          name: member.leagues?.name,
+          description: member.leagues?.description,
+          region: member.leagues?.region,
+          type: member.leagues?.type,
+          member_count: member.leagues?.member_count,
+          created_at: member.leagues?.created_at,
+          updated_at: member.leagues?.updated_at,
+          owner: owner ? {
+            id: owner.id,
+            nickname: owner.nickname,
+            avatar_url: owner.avatar_url
+          } : null,
+          my_role: member.role,
+          joined_at: member.joined_at
+        };
+      }) || []
+    );
+
+    const filteredData = transformedData.filter(league => league.id);
+
+    const total = count || 0;
+    const hasMore = offset + limit < total;
+
+    return NextResponse.json({
+      success: true,
+      data: filteredData,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching my leagues:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch my leagues" },
       { status: 500 }
     );
   }

@@ -21,6 +21,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (updatedProfile: UserProfile) => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +55,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supabase]);
 
+  // 프로필 업데이트 함수
+  const updateProfile = useCallback((updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+  }, []);
+
+  // 프로필 새로고침 함수
+  const refreshProfile = useCallback(async () => {
+    if (user?.id) {
+      const profileData = await fetchUserProfile(user.id);
+      setProfile(profileData);
+    }
+  }, [user?.id, fetchUserProfile]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -67,10 +82,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setUser(session?.user ?? null);
           
-          // 사용자가 있으면 프로필 데이터 가져오기
+          // 사용자가 있으면 프로필 데이터 가져오기 (비동기로 처리)
           if (session?.user) {
-            const profileData = await fetchUserProfile(session.user.id);
-            setProfile(profileData);
+            setProfile(null); // 먼저 프로필을 null로 설정
+            fetchUserProfile(session.user.id).then(profileData => {
+              if (mounted) {
+                setProfile(profileData);
+              }
+            });
           } else {
             setProfile(null);
           }
@@ -95,10 +114,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // 사용자가 있으면 프로필 데이터 가져오기
+        // 사용자가 있으면 프로필 데이터 가져오기 (비동기로 처리)
         if (session?.user) {
-          const profileData = await fetchUserProfile(session.user.id);
-          setProfile(profileData);
+          setProfile(null); // 먼저 프로필을 null로 설정
+          fetchUserProfile(session.user.id).then(profileData => {
+            if (mounted) {
+              setProfile(profileData);
+            }
+          });
         } else {
           setProfile(null);
         }
@@ -158,6 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // 로컬 상태 즉시 초기화
       setUser(null);
+      setProfile(null);
       setSession(null);
 
       // 현재 페이지가 홈이 아닌 경우에만 리다이렉트
@@ -171,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error);
       // 에러가 발생해도 로컬 상태는 초기화
       setUser(null);
+      setProfile(null);
       setSession(null);
       throw error;
     } finally {
@@ -185,6 +210,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signInWithGoogle,
     signOut,
+    updateProfile,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

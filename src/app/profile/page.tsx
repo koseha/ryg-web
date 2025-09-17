@@ -46,7 +46,7 @@ const tierOptions = [
 const positionOptions = ["Top", "Jungle", "Mid", "ADC", "Support"];
 
 export default function UserProfile() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -165,13 +165,17 @@ export default function UserProfile() {
 
       if (data.success) {
         // 안전한 기본값으로 업데이트된 프로필 데이터 설정
-        setProfile({
+        const updatedProfile = {
           ...data.data,
           positions: data.data.positions || [],
           tier: data.data.tier || "Unranked",
           nickname: data.data.nickname || "사용자",
           avatar_url: data.data.avatar_url || null,
-        });
+        };
+        
+        setProfile(updatedProfile);
+        // AuthContext의 프로필도 업데이트
+        updateProfile(updatedProfile);
         setEditingProfile(null);
         setIsEditing(false);
         toast({

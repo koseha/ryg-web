@@ -26,10 +26,10 @@ export const UserDropdown = () => {
   // 프로필 데이터가 있으면 사용, 없으면 fallback
   const userAvatar = profile?.avatar_url || 
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      profile?.nickname || "User"
+      profile?.nickname || user.email?.split("@")[0] || "User"
     )}&background=random`;
   
-  const userName = profile?.nickname || "User";
+  const userName = profile?.nickname || user.email?.split("@")[0] || "User";
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

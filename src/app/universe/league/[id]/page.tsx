@@ -344,10 +344,13 @@ export default function LeagueDetail() {
                           | "Grandmaster"
                           | "Master"
                           | "Diamond"
+                          | "Emerald"
                           | "Platinum"
                           | "Gold"
                           | "Silver"
                           | "Bronze"
+                          | "Iron"
+                          | "Unranked"
                       }
                     />
                     <PositionTags positions={member.positions} />
@@ -384,10 +387,13 @@ export default function LeagueDetail() {
                     }
                   >
                     <option value="">티어를 선택하세요</option>
+                    <option value="Unranked">언랭크</option>
+                    <option value="Iron">아이언</option>
                     <option value="Bronze">브론즈</option>
                     <option value="Silver">실버</option>
                     <option value="Gold">골드</option>
                     <option value="Platinum">플래티넘</option>
+                    <option value="Emerald">에메랄드</option>
                     <option value="Diamond">다이아몬드</option>
                     <option value="Master">마스터</option>
                     <option value="Grandmaster">그랜드마스터</option>

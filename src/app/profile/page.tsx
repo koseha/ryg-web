@@ -9,7 +9,6 @@ import {
   Users,
   Calendar,
   LogOut,
-  Trash2,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,10 +32,12 @@ interface UserProfile {
 
 const tierOptions = [
   "Unranked",
+  "Iron",
   "Bronze",
   "Silver",
   "Gold",
   "Platinum",
+  "Emerald",
   "Diamond",
   "Master",
   "Grandmaster",
@@ -222,56 +223,6 @@ export default function UserProfile() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (
-      !confirm("정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")
-    ) {
-      return;
-    }
-
-    if (!confirm("모든 데이터가 영구적으로 삭제됩니다. 계속하시겠습니까?")) {
-      return;
-    }
-
-    try {
-      // 세션에서 액세스 토큰 가져오기
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const response = await fetch("/api/profile", {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: "계정 삭제",
-          description: "계정이 성공적으로 삭제되었습니다",
-        });
-        // 홈페이지로 리다이렉트
-        window.location.href = "/";
-      } else {
-        toast({
-          title: "오류",
-          description: data.error || "계정 삭제에 실패했습니다",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      toast({
-        title: "오류",
-        description: "계정 삭제 중 오류가 발생했습니다",
-        variant: "destructive",
-      });
-    }
-  };
 
   // 로딩 상태
   if (isLoading) {
@@ -419,10 +370,12 @@ export default function UserProfile() {
                           | "Grandmaster"
                           | "Master"
                           | "Diamond"
+                          | "Emerald"
                           | "Platinum"
                           | "Gold"
                           | "Silver"
                           | "Bronze"
+                          | "Iron"
                           | "Unranked"
                       }
                     />
@@ -530,25 +483,6 @@ export default function UserProfile() {
                 로그아웃
               </Button>
 
-              <div className="border-t border-border pt-4">
-                <div className="p-4 bg-destructive/10 rounded-lg">
-                  <h3 className="text-lg font-medium text-destructive mb-2">
-                    계정 삭제
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다. 이
-                    작업은 되돌릴 수 없습니다.
-                  </p>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDeleteAccount}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    계정 삭제
-                  </Button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

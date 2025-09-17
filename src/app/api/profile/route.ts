@@ -224,6 +224,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const validTiers = [
+      "Iron",
       "Bronze",
       "Silver",
       "Gold",
@@ -314,79 +315,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// 사용자 프로필 삭제
-export async function DELETE(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-
-    // Authorization 헤더에서 토큰 확인
-    const authHeader = request.headers.get("authorization");
-    let user = null;
-
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const {
-        data: { user: tokenUser },
-      } = await supabase.auth.getUser(token);
-      if (tokenUser) {
-        user = tokenUser;
-      }
-    }
-
-    // 쿠키 기반 인증 시도
-    if (!user) {
-      const {
-        data: { user: cookieUser },
-      } = await supabase.auth.getUser();
-      user = cookieUser;
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "인증이 필요합니다" },
-        { status: 401 }
-      );
-    }
-
-    // 프로필 삭제
-    const { error: deleteError } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", user.id);
-
-    if (deleteError) {
-      console.error("Error deleting profile:", deleteError);
-      return NextResponse.json(
-        { success: false, error: "프로필 삭제에 실패했습니다" },
-        { status: 500 }
-      );
-    }
-
-    // 사용자 계정 삭제 (Supabase Auth) - Service Role Key 필요
-    // const { error: authDeleteError } = await supabase.auth.admin.deleteUser(
-    //   user.id
-    // );
-
-    // if (authDeleteError) {
-    //   console.error("Error deleting user account:", authDeleteError);
-    //   return NextResponse.json(
-    //     { success: false, error: "계정 삭제에 실패했습니다" },
-    //     { status: 500 }
-    //   );
-    // }
-
-    return NextResponse.json({
-      success: true,
-      message: "계정이 성공적으로 삭제되었습니다",
-    });
-  } catch (error) {
-    console.error("Error deleting user profile:", error);
-    return NextResponse.json(
-      { success: false, error: "계정 삭제 중 오류가 발생했습니다" },
-      { status: 500 }
-    );
-  }
-}
 
 // 사용자 통계 조회 함수
 async function getUserStats(

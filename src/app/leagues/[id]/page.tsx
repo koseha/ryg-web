@@ -227,10 +227,13 @@ const tierOptions = [
   { value: "Grandmaster", label: "그랜드마스터" },
   { value: "Master", label: "마스터" },
   { value: "Diamond", label: "다이아몬드" },
+  { value: "Emerald", label: "에메랄드" },
   { value: "Platinum", label: "플래티넘" },
   { value: "Gold", label: "골드" },
   { value: "Silver", label: "실버" },
-  { value: "Bronze", label: "브론즈" }
+  { value: "Bronze", label: "브론즈" },
+  { value: "Iron", label: "아이언" },
+  { value: "Unranked", label: "언랭크" }
 ];
 
 const positionOptions = [
@@ -568,7 +571,7 @@ export default function LeaguePage() {
                               <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                                 <h3 className="text-lg font-medium text-foreground">{application.name}</h3>
                                 <div className="flex flex-wrap gap-2">
-                                  <TierBadge tier={application.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
+                                  <TierBadge tier={application.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
                                   <PositionTags positions={application.positions} />
                                 </div>
                               </div>
@@ -687,7 +690,7 @@ export default function LeaguePage() {
 
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Platinum" | "Gold" | "Silver" | "Bronze"} />
+                            <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
                             <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
                           </div>
                           <PositionTags positions={member.positions} />

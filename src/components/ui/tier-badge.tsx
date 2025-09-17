@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface TierBadgeProps {
-  tier: "Unranked" | "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Master" | "Grandmaster" | "Challenger";
+  tier: "Unranked" | "Iron" | "Bronze" | "Silver" | "Gold" | "Platinum" | "Emerald" | "Diamond" | "Master" | "Grandmaster" | "Challenger";
   className?: string;
 }
 
@@ -12,6 +12,11 @@ export const TierBadge = ({ tier, className }: TierBadgeProps) => {
         return {
           className: "bg-gray-500/20 text-gray-500 border-gray-500/30",
           label: "언랭크"
+        };
+      case "Iron":
+        return {
+          className: "bg-gray-600/20 text-gray-600 border-gray-600/30",
+          label: "아이언"
         };
       case "Bronze":
         return {
@@ -32,6 +37,11 @@ export const TierBadge = ({ tier, className }: TierBadgeProps) => {
         return {
           className: "bg-blue-400/20 text-blue-400 border-blue-400/30",
           label: "플래티넘"
+        };
+      case "Emerald":
+        return {
+          className: "bg-emerald-500/20 text-emerald-500 border-emerald-500/30",
+          label: "에메랄드"
         };
       case "Diamond":
         return {

@@ -16,9 +16,11 @@ export async function GET(request: NextRequest) {
     // Build query with filters
     let query = supabase.from("leagues").select("*", { count: "exact" });
 
-    // Filter by search term
+    // Filter by search term - SQL 인젝션 방지
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      // 특수 문자 이스케이프 처리
+      const sanitizedSearch = search.replace(/[%_\\]/g, '\\$&');
+      query = query.or(`name.ilike.%${sanitizedSearch}%,description.ilike.%${sanitizedSearch}%`);
     }
 
     // Filter by region

@@ -359,12 +359,12 @@ export default function LeaguePage() {
   };
 
   const handleDeleteLeague = async () => {
-    console.log("Deleting league...");
+    // TODO: Implement delete league logic
   };
 
   const handleRoleChange = (memberId: number, newRole: "Admin" | "Member") => {
-    console.log(`Changing member ${memberId} role to ${newRole}`);
     // TODO: Implement role change logic
+    console.log(`Changing member ${memberId} role to ${newRole}`);
   };
 
   const handleTransferOwnership = (adminId: number) => {
@@ -374,7 +374,6 @@ export default function LeaguePage() {
 
   const confirmTransferOwnership = async () => {
     if (selectedAdminId) {
-      console.log(`Transferring ownership to admin ${selectedAdminId}`);
       // TODO: Implement actual ownership transfer API call
       // This should:
       // 1. Update the current owner to Admin

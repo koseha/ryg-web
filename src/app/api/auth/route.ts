@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { action } = body;
 
     if (action === "google-login") {
-      const supabase = await createServerSupabaseClient();
+      const supabase = await createClient();
 
       // 구글 OAuth 로그인 URL 생성 (PKCE 방식)
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "logout") {
-      const supabase = await createServerSupabaseClient();
+      const supabase = await createClient();
 
       // 로그아웃 실행 (쿠키 기반으로 자동 처리)
       const { error } = await supabase.auth.signOut();
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     const {
       data: { user },

@@ -18,7 +18,7 @@ import { TierBadge } from "@/components/ui/tier-badge";
 import { PositionTags } from "@/components/ui/position-tags";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 interface UserProfile {
   id: string;
@@ -68,6 +68,7 @@ export default function UserProfile() {
 
       try {
         // 세션에서 액세스 토큰 가져오기
+        const supabase = createClient();
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -142,6 +143,7 @@ export default function UserProfile() {
 
     try {
       // 세션에서 액세스 토큰 가져오기
+      const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -230,6 +232,7 @@ export default function UserProfile() {
 
     try {
       // 세션에서 액세스 토큰 가져오기
+      const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function AuthCallback() {
@@ -11,12 +11,12 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log("OAuth callback page loaded, waiting for session...");
 
         // Supabase가 자동으로 URL에서 세션을 감지하도록 대기
         // detectSessionInUrl: true 설정으로 자동 처리됨
         setTimeout(async () => {
           try {
+            const supabase = createClient();
             const { data: sessionData, error: sessionError } =
               await supabase.auth.getSession();
 
@@ -31,7 +31,6 @@ export default function AuthCallback() {
             }
 
             if (sessionData.session) {
-              console.log("Login successful:", sessionData.session.user.email);
               router.push("/");
             } else {
               console.error("No session found after OAuth callback");

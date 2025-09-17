@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     // 1. 기본 연결 테스트 - auth.users 테이블 확인 (기본 제공)
     const {
       data: { user },

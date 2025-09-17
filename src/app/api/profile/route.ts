@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase/server";
 
 // 프로필 요청 처리 함수
 async function handleProfileRequest(
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ) {
   try {
@@ -80,7 +80,7 @@ async function handleProfileRequest(
 // 사용자 프로필 조회
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Authorization 헤더에서 토큰 확인
     const authHeader = request.headers.get("authorization");
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
 // 사용자 프로필 업데이트
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Authorization 헤더에서 토큰 확인
     const authHeader = request.headers.get("authorization");
@@ -277,16 +277,8 @@ export async function PUT(request: NextRequest) {
     if (positions) updateData.positions = positions;
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
 
-    console.log("updateData::", updateData);
-
-    // 쿠키 정보 확인
-    const cookieStore = await import('next/headers').then(m => m.cookies());
-    const allCookies = cookieStore.getAll();
-    console.log("All cookies:", allCookies.map(c => ({ name: c.name, value: c.value?.substring(0, 20) + '...' })));
-
     // 현재 세션 상태 확인
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    console.log("Current session:", session?.user?.id, sessionError);
+    await supabase.auth.getSession();
 
     const { data: updatedProfile, error: updateError } = await supabaseClient
       .from("profiles")
@@ -325,7 +317,7 @@ export async function PUT(request: NextRequest) {
 // 사용자 프로필 삭제
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Authorization 헤더에서 토큰 확인
     const authHeader = request.headers.get("authorization");
@@ -398,7 +390,7 @@ export async function DELETE(request: NextRequest) {
 
 // 사용자 통계 조회 함수
 async function getUserStats(
-  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ) {
   try {

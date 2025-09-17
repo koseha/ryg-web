@@ -1,11 +1,22 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
+interface UserProfile {
+  id: string;
+  nickname: string;
+  avatar_url?: string;
+  tier?: string;
+  positions?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
@@ -16,9 +27,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  // 프로필 데이터 가져오기
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
+
+      return profile;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      return null;
+    }
+  }, [supabase]);
 
   useEffect(() => {
     let mounted = true;
@@ -33,6 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
+          
+          // 사용자가 있으면 프로필 데이터 가져오기
+          if (session?.user) {
+            const profileData = await fetchUserProfile(session.user.id);
+            setProfile(profileData);
+          } else {
+            setProfile(null);
+          }
+          
           setLoading(false);
         }
       } catch (error) {
@@ -52,6 +94,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // 사용자가 있으면 프로필 데이터 가져오기
+        if (session?.user) {
+          const profileData = await fetchUserProfile(session.user.id);
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+        
         setLoading(false);
       }
     });
@@ -60,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase.auth, fetchUserProfile]);
 
   const signInWithGoogle = async () => {
     try {
@@ -129,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
+    profile,
     session,
     loading,
     signInWithGoogle,

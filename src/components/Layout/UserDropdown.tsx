@@ -17,19 +17,19 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export const UserDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   if (!user) {
     return null;
   }
 
-  const userAvatar =
-    user.user_metadata?.avatar_url ||
+  // 프로필 데이터가 있으면 사용, 없으면 fallback
+  const userAvatar = profile?.avatar_url || 
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      user.user_metadata?.name || user.email || "User"
+      profile?.nickname || "User"
     )}&background=random`;
-  const userName =
-    user.user_metadata?.name || user.email?.split("@")[0] || "User";
+  
+  const userName = profile?.nickname || "User";
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -58,7 +58,6 @@ export const UserDropdown = () => {
       >
         <div className="px-4 py-3 border-b border-border/50">
           <p className="font-semibold text-foreground text-sm">{userName}</p>
-          <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
         </div>
 
         <DropdownMenuItem

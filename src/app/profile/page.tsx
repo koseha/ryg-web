@@ -22,7 +22,6 @@ import { createClient } from "@/lib/supabase/client";
 
 interface UserProfile {
   id: string;
-  email: string;
   nickname: string;
   tier: string;
   positions: string[];
@@ -353,7 +352,6 @@ export default function UserProfile() {
                   height={96}
                   className="h-24 w-24 rounded-full border-4 border-primary/30 mx-auto md:mx-0 mb-4"
                 />
-                <p className="text-sm text-muted-foreground">{profile.email}</p>
               </div>
 
               <div className="flex-1 space-y-6">

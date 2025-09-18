@@ -87,20 +87,34 @@ export async function GET(
       }) || []
     );
 
-    // 현재 사용자의 가입 신청 상태 조회
+    // 현재 사용자의 가입 상태 및 신청 상태 조회
     let userJoinRequest = null;
+    let userMembership = null;
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: joinRequest } = await supabase
-        .from("league_join_requests")
-        .select("id, status, created_at")
+      // 1. 사용자가 이미 리그 멤버인지 확인
+      const { data: membership } = await supabase
+        .from("league_members")
+        .select("id, role, joined_at")
         .eq("league_id", leagueId)
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .single();
       
-      userJoinRequest = joinRequest;
+      userMembership = membership;
+
+      // 2. 가입 신청 상태 조회 (멤버가 아닌 경우에만)
+      if (!membership) {
+        const { data: joinRequest } = await supabase
+          .from("league_join_requests")
+          .select("id, status, created_at")
+          .eq("league_id", leagueId)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        
+        userJoinRequest = joinRequest;
+      }
     }
 
     // 데이터 변환
@@ -126,6 +140,7 @@ export async function GET(
       type: league.type,
       accepting: league.accepting,
       user_join_request: userJoinRequest,
+      user_membership: userMembership,
       recent_members: recentMembers,
     };
 

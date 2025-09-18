@@ -52,6 +52,11 @@ interface LeagueDetails {
     status: 'pending' | 'approved' | 'rejected';
     created_at: string;
   } | null;
+  user_membership?: {
+    id: string;
+    role: string;
+    joined_at: string;
+  } | null;
   recent_members: Array<{
     id: string;
     user_id: string;
@@ -232,6 +237,17 @@ export default function LeagueDetail() {
   };
 
   const getJoinButtonState = () => {
+    // 이미 가입된 멤버인 경우
+    if (leagueData?.user_membership) {
+      return {
+        text: "이미 가입됨",
+        disabled: true,
+        variant: "default" as const,
+        icon: <UserPlus className="mr-2 h-4 w-4" />
+      };
+    }
+
+    // 가입 신청 상태에 따른 처리
     if (joinRequestStatus === 'pending') {
       return {
         text: "신청 대기 중",
@@ -345,7 +361,11 @@ export default function LeagueDetail() {
                   <Button
                     variant={buttonState.variant}
                     size="lg"
-                    onClick={() => setShowJoinForm(true)}
+                    onClick={() => {
+                      if (!leagueData?.user_membership) {
+                        setShowJoinForm(true);
+                      }
+                    }}
                     disabled={buttonState.disabled}
                     className="text-lg px-8 py-4"
                   >
@@ -435,7 +455,7 @@ export default function LeagueDetail() {
         </div>
 
         {/* Join Application Modal */}
-        {showJoinForm && (
+        {showJoinForm && !leagueData?.user_membership && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="card-glass p-8 max-w-md w-full">
               <h2 className="text-2xl font-bold text-foreground mb-6">

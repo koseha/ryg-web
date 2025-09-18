@@ -126,11 +126,15 @@ export default function LeagueDetail() {
     fetchLeagueData();
   }, [fetchLeagueData]);
 
-  // 페이지 포커스 시 상태 재확인
+  // 페이지 포커스 시 상태 재확인 (5분마다만)
   useEffect(() => {
+    let lastFetchTime = 0;
+    const FETCH_INTERVAL = 5 * 60 * 1000; // 5분
+
     const handleFocus = () => {
-      if (params?.id && leagueData) {
-        // 간단한 상태 재확인을 위해 리그 데이터 다시 로드
+      const now = Date.now();
+      if (params?.id && leagueData && (now - lastFetchTime) > FETCH_INTERVAL) {
+        lastFetchTime = now;
         fetchLeagueData();
       }
     };

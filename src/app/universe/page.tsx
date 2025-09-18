@@ -167,7 +167,8 @@ export default function Universe() {
   // 초기 로드
   useEffect(() => {
     loadLeagues(1, true);
-  }, [loadLeagues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, sortBy, region, type]); // loadLeagues를 dependencies에서 제외하여 무한 루프 방지
 
   const handleLoadMore = async () => {
     if (hasMore && !isLoadingMore) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -219,7 +219,7 @@ export default function LeaguePage() {
   // 초기 데이터 로딩
   useEffect(() => {
     const loadData = async () => {
-      if (!user) {
+      if (!user || !leagueId) {
         setLoading(false);
         return;
       }
@@ -238,7 +238,8 @@ export default function LeaguePage() {
     };
 
     loadData();
-  }, [user, fetchLeagueSettings, fetchMembers, fetchJoinRequests, fetchMatches]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, leagueId]); // fetch 함수들을 dependencies에서 제외하여 무한 루프 방지
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -265,24 +266,28 @@ export default function LeaguePage() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
 
-  // Filter functions
-  const filteredMembers = members.filter(member => {
-    const matchesRole = roleFilter === "all" || member.role === roleFilter;
-    const matchesTier = tierFilter === "all" || member.tier === tierFilter;
-    const matchesPosition = positionFilter === "all" || member.positions.includes(positionFilter);
-    return matchesRole && matchesTier && matchesPosition;
-  });
-
-  const filteredMatches = matches
-    .filter(match => {
-      const matchesStatus = statusFilter === "all" || match.status === statusFilter;
-      return matchesStatus;
-    })
-    .sort((a, b) => {
-      // 상태별 정렬: 진행 중 > 완료
-      const statusOrder = { active: 0, completed: 1 };
-      return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+  // Filter functions - useMemo로 최적화
+  const filteredMembers = useMemo(() => {
+    return members.filter(member => {
+      const matchesRole = roleFilter === "all" || member.role === roleFilter;
+      const matchesTier = tierFilter === "all" || member.tier === tierFilter;
+      const matchesPosition = positionFilter === "all" || member.positions.includes(positionFilter);
+      return matchesRole && matchesTier && matchesPosition;
     });
+  }, [members, roleFilter, tierFilter, positionFilter]);
+
+  const filteredMatches = useMemo(() => {
+    return matches
+      .filter(match => {
+        const matchesStatus = statusFilter === "all" || match.status === statusFilter;
+        return matchesStatus;
+      })
+      .sort((a, b) => {
+        // 상태별 정렬: 진행 중 > 완료
+        const statusOrder = { active: 0, completed: 1 };
+        return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+      });
+  }, [matches, statusFilter]);
 
   // Helper functions
   const generateMatchCode = () => {

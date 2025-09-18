@@ -175,6 +175,7 @@ export default function LeagueDetail() {
         toast({
           title: "가입 신청 완료",
           description: result.message || "가입 신청이 완료되었습니다",
+          duration: 3000, // 3초
         });
         setShowJoinForm(false);
         setJoinForm({ message: "" });
@@ -184,6 +185,7 @@ export default function LeagueDetail() {
           title: "가입 신청 실패",
           description: result.error || "가입 신청 중 오류가 발생했습니다",
           variant: "destructive",
+          duration: 5000, // 5초
         });
       }
     } catch {
@@ -191,6 +193,7 @@ export default function LeagueDetail() {
         title: "가입 신청 실패",
         description: "가입 신청 중 오류가 발생했습니다",
         variant: "destructive",
+        duration: 5000, // 5초
       });
     } finally {
       setJoinLoading(false);

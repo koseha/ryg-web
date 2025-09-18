@@ -107,6 +107,7 @@ export default function MyLeagues() {
         toast({
           title: "리그 생성 완료",
           description: `${formData.name} 리그가 성공적으로 생성되었습니다.`,
+          duration: 3000, // 3초
         });
         setShowCreateModal(false);
         setCreateForm({ name: "", description: "" });
@@ -155,6 +156,7 @@ export default function MyLeagues() {
         toast({
           title: "신청 취소 완료",
           description: result.message,
+          duration: 3000, // 3초
         });
         // 목록 새로고침
         fetchMyLeagues();

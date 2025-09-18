@@ -3,13 +3,14 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 5000; // 5초
 
 type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
+  duration?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,18 +54,19 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
-const addToRemoveQueue = (toastId: string) => {
+const addToRemoveQueue = (toastId: string, duration?: number) => {
   if (toastTimeouts.has(toastId)) {
     return;
   }
 
+  const delay = duration || TOAST_REMOVE_DELAY;
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId);
     dispatch({
       type: "REMOVE_TOAST",
       toastId: toastId,
     });
-  }, TOAST_REMOVE_DELAY);
+  }, delay);
 
   toastTimeouts.set(toastId, timeout);
 };
@@ -89,10 +91,11 @@ export const reducer = (state: State, action: Action): State => {
       // ! Side effects ! - This could be extracted into a dismissToast() action,
       // but I'll keep it here for simplicity
       if (toastId) {
-        addToRemoveQueue(toastId);
+        const toast = state.toasts.find(t => t.id === toastId);
+        addToRemoveQueue(toastId, toast?.duration);
       } else {
         state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id);
+          addToRemoveQueue(toast.id, toast.duration);
         });
       }
 
@@ -156,6 +159,11 @@ function toast({ ...props }: Toast) {
       },
     },
   });
+
+  // 자동으로 dismiss되도록 설정
+  setTimeout(() => {
+    dismiss();
+  }, props.duration || TOAST_REMOVE_DELAY);
 
   return {
     id: id,

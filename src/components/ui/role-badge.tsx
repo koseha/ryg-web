@@ -2,20 +2,20 @@ import { cn } from "@/lib/utils";
 import { Crown, Star, Users } from "lucide-react";
 
 interface RoleBadgeProps {
-  role: "Owner" | "Admin" | "Member";
+  role: "owner" | "admin" | "member";
   className?: string;
 }
 
 export const RoleBadge = ({ role, className }: RoleBadgeProps) => {
   const getRoleConfig = (role: string) => {
     switch (role) {
-      case "Owner":
+      case "owner":
         return {
           icon: Crown,
           className: "bg-primary/20 text-primary border-primary/30",
           label: "책임자"
         };
-      case "Admin":
+      case "admin":
         return {
           icon: Star,
           className: "bg-accent/20 text-accent border-accent/30",

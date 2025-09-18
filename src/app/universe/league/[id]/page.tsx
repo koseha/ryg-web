@@ -27,31 +27,35 @@ import { useToast } from "@/hooks/use-toast";
 
 // Types
 interface LeagueDetails {
-  id: number;
+  id: string;
   name: string;
   description: string;
   rules: string[];
   member_count: number;
+  match_count: number;
+  last_matched_at: string | null;
   created_at: string;
+  updated_at: string;
+  owner_id: string;
   owner: {
     id: string;
-    name: string;
-    avatar: string | null;
+    nickname: string;
+    avatar_url: string | null;
     tier: string;
     positions: string[];
   } | null;
   region: string;
   type: string;
+  accepting: boolean;
   recent_members: Array<{
     id: string;
-    name: string;
+    user_id: string;
+    nickname: string;
     tier: string;
     positions: string[];
     role: string;
-    joinedAt: string;
-    avatar: string | null;
-    winRate: number;
-    matchesPlayed: number;
+    joined_at: string;
+    avatar_url: string | null;
   }>;
 }
 
@@ -94,17 +98,18 @@ export default function LeagueDetail() {
         } else {
           setError(result.error || "리그 정보를 불러올 수 없습니다");
         }
-      } catch {
+      } catch (err) {
+        console.error("Error fetching league data:", err);
         setError("리그 정보를 불러오는 중 오류가 발생했습니다");
       } finally {
         setLoading(false);
       }
     };
 
-    if (params.id) {
+    if (params?.id) {
       fetchLeagueData();
     }
-  }, [params.id]);
+  }, [params?.id]);
 
   // Handle join form submission
   const handleJoinSubmit = async () => {
@@ -112,6 +117,15 @@ export default function LeagueDetail() {
       toast({
         title: "입력 오류",
         description: "티어와 포지션을 모두 선택해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!params?.id) {
+      toast({
+        title: "오류",
+        description: "리그 ID를 찾을 수 없습니다",
         variant: "destructive",
       });
       return;
@@ -164,7 +178,7 @@ export default function LeagueDetail() {
     }));
   };
 
-  if (loading) {
+  if (loading || !params?.id) {
     return (
       <div className="min-h-screen py-8 px-4 flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -271,7 +285,7 @@ export default function LeagueDetail() {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Crown className="h-4 w-4" />
-                  <span>책임자: {leagueData.owner?.name || "Unknown"}</span>
+                  <span>책임자: {leagueData.owner?.nickname || "알 수 없음"}</span>
                 </div>
               </div>
             </div>
@@ -321,8 +335,8 @@ export default function LeagueDetail() {
                 className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg"
               >
                 <Image
-                  src={member.avatar || "/default-avatar.png"}
-                  alt={member.name}
+                  src={member.avatar_url || "/default-avatar.png"}
+                  alt={member.nickname}
                   width={40}
                   height={40}
                   className="h-10 w-10 rounded-full border-2 border-primary/30"
@@ -330,10 +344,10 @@ export default function LeagueDetail() {
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="font-medium text-foreground">
-                      {member.name}
+                      {member.nickname}
                     </span>
                     <RoleBadge
-                      role={member.role as "Owner" | "Admin" | "Member"}
+                      role={member.role as "owner" | "admin" | "member"}
                     />
                   </div>
                   <div className="flex items-center space-x-2">

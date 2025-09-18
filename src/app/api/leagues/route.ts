@@ -117,12 +117,14 @@ export async function POST(request: NextRequest) {
         name: body.name,
         description: body.description,
         region: body.region,
-        type: body.type,
+        type: body.type || 'Basic',
         owner_id: user.id,
         rules: body.rules || [],
       })
       .select()
       .single();
+
+      console.log(error);
 
     if (error) {
       return NextResponse.json(

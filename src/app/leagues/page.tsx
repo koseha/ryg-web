@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Crown, Users, Calendar, Plus, Trophy, Star, Loader2 } from "lucide-react";
+import { Crown, Users, Calendar, Plus, Trophy, Star, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { RoleBadge } from "@/components/ui/role-badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserLeague {
   id: number;
@@ -25,11 +28,23 @@ interface UserLeague {
   joined_at: string;
 }
 
+interface CreateLeagueForm {
+  name: string;
+  description: string;
+}
+
 export default function MyLeagues() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [leagues, setLeagues] = useState<UserLeague[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateLeagueForm>({
+    name: "",
+    description: ""
+  });
 
   useEffect(() => {
     if (user) {
@@ -55,6 +70,62 @@ export default function MyLeagues() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const createLeague = async (formData: CreateLeagueForm) => {
+    try {
+      setIsCreating(true);
+      const response = await fetch('/api/leagues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          region: 'KR',
+          type: 'Basic'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "리그 생성 완료",
+          description: `${formData.name} 리그가 성공적으로 생성되었습니다.`,
+        });
+        setShowCreateModal(false);
+        setCreateForm({ name: "", description: "" });
+        fetchMyLeagues(); // 리그 목록 새로고침
+      } else {
+        toast({
+          title: "리그 생성 실패",
+          description: data.error || "리그 생성에 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "리그 생성 실패",
+        description: "네트워크 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.name.trim() || !createForm.description.trim()) {
+      toast({
+        title: "입력 오류",
+        description: "리그 이름과 설명을 모두 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createLeague(createForm);
   };
 
   const getRoleIcon = (role: string) => {
@@ -140,12 +211,10 @@ export default function MyLeagues() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0">
-            <Link href="/universe">
-              <Button variant="outline" className="mr-3">
-                <Plus className="h-4 w-4 mr-2" />
-                리그 찾기
-              </Button>
-            </Link>
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              리그 생성
+            </Button>
           </div>
         </div>
 
@@ -157,14 +226,12 @@ export default function MyLeagues() {
               가입한 리그가 없습니다
             </h2>
             <p className="text-muted-foreground mb-6">
-              새로운 리그를 찾아서 가입해보세요!
+              새로운 리그를 만들어보세요!
             </p>
-            <Link href="/universe">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                리그 찾기
-              </Button>
-            </Link>
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              리그 생성
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -216,6 +283,90 @@ export default function MyLeagues() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Create League Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="w-full max-w-2xl bg-card rounded-lg shadow-lg border border-border">
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <h2 className="text-xl font-semibold text-foreground">새 리그 만들기</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={isCreating}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <form onSubmit={handleCreateSubmit} className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    리그 이름 *
+                  </label>
+                  <Input
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="리그 이름을 입력하세요"
+                    disabled={isCreating}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    리그 설명 *
+                  </label>
+                  <Textarea
+                    value={createForm.description}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="리그에 대한 설명을 입력하세요"
+                    rows={4}
+                    disabled={isCreating}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">리그 타입</label>
+                  <Input value="Basic" disabled className="bg-muted" />
+                  <p className="text-xs text-muted-foreground mt-1">현재 Basic 타입으로 고정됩니다</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">지역</label>
+                  <Input value="한국 (KR)" disabled className="bg-muted" />
+                  <p className="text-xs text-muted-foreground mt-1">현재 한국 지역으로 고정됩니다</p>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateModal(false)}
+                    disabled={isCreating}
+                  >
+                    취소
+                  </Button>
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        리그 생성
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

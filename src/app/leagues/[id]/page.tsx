@@ -103,9 +103,9 @@ interface LeagueSettings {
 
 const roleOptions = [
   { value: "all", label: "모든 역할" },
-  { value: "Owner", label: "책임자" },
-  { value: "Admin", label: "운영진" },
-  { value: "Member", label: "멤버" }
+  { value: "owner", label: "책임자" },
+  { value: "admin", label: "운영진" },
+  { value: "member", label: "멤버" }
 ];
 
 const tierOptions = [

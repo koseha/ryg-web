@@ -190,11 +190,6 @@ export async function POST(request: NextRequest) {
 // 내가 가입한 리그 조회 함수
 async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<typeof createClient>>) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "12");
-    const offset = (page - 1) * limit;
-
     // 인증 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -204,8 +199,8 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
       );
     }
 
-    // 내가 가입한 리그 조회 - league_stats와 조인
-    const { data, error, count } = await supabase
+    // 1. 내가 가입한 리그 조회
+    const { data: joinedData, error: joinedError } = await supabase
       .from("league_members")
       .select(`
         *,
@@ -217,20 +212,37 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
             last_matched_at
           )
         )
-      `, { count: "exact" })
-      .eq("user_id", user.id)
-      .range(offset, offset + limit - 1);
+      `)
+      .eq("user_id", user.id);
 
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
+    if (joinedError) {
+      console.error("Error fetching joined leagues:", joinedError);
     }
 
-    // 데이터 변환
-    const transformedData = await Promise.all(
-      data?.map(async (member) => {
+    // 2. 내가 신청한 대기 중인 리그 조회
+    const { data: pendingData, error: pendingError } = await supabase
+      .from("league_join_requests")
+      .select(`
+        *,
+        leagues (
+          *,
+          league_stats (
+            member_count,
+            match_count,
+            last_matched_at
+          )
+        )
+      `)
+      .eq("user_id", user.id)
+      .eq("status", "pending");
+
+    if (pendingError) {
+      console.error("Error fetching pending requests:", pendingError);
+    }
+
+    // 가입한 리그 데이터 변환
+    const joinedLeagues = await Promise.all(
+      joinedData?.map(async (member) => {
         // 리그 소유자 정보 별도 조회
         let owner = null;
         if (member.leagues?.owner_id) {
@@ -264,21 +276,55 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
       }) || []
     );
 
-    const filteredData = transformedData.filter(league => league.id);
+    // 대기 중인 신청 데이터 변환
+    const pendingRequests = await Promise.all(
+      pendingData?.map(async (request) => {
+        // 리그 소유자 정보 별도 조회
+        let owner = null;
+        if (request.leagues?.owner_id) {
+          const { data: ownerProfile } = await supabase
+            .from("profiles")
+            .select("id, nickname, avatar_url")
+            .eq("id", request.leagues.owner_id)
+            .single();
+          owner = ownerProfile;
+        }
 
-    const total = count || 0;
-    const hasMore = offset + limit < total;
+        return {
+          id: request.id,
+          league: {
+            id: request.leagues?.id,
+            name: request.leagues?.name,
+            description: request.leagues?.description,
+            region: request.leagues?.region,
+            type: request.leagues?.type,
+            member_count: request.leagues?.league_stats?.[0]?.member_count || 1,
+            match_count: request.leagues?.league_stats?.[0]?.match_count || 0,
+            last_matched_at: request.leagues?.league_stats?.[0]?.last_matched_at || null,
+            created_at: request.leagues?.created_at,
+            updated_at: request.leagues?.updated_at,
+            owner: owner ? {
+              id: owner.id,
+              nickname: owner.nickname,
+              avatar_url: owner.avatar_url
+            } : null,
+          },
+          status: request.status,
+          message: request.message,
+          applied_at: request.created_at
+        };
+      }) || []
+    );
+
+    const filteredJoinedLeagues = joinedLeagues.filter(league => league.id);
+    const filteredPendingRequests = pendingRequests.filter(request => request.league.id);
 
     return NextResponse.json({
       success: true,
-      data: filteredData,
-      pagination: {
-        page,
-        limit,
-        total,
-        hasMore,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: {
+        joined: filteredJoinedLeagues,
+        pending: filteredPendingRequests
+      }
     });
   } catch (error) {
     console.error("Error fetching my leagues:", error);

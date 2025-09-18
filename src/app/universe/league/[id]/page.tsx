@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -47,6 +47,11 @@ interface LeagueDetails {
   region: string;
   type: string;
   accepting: boolean;
+  user_join_request?: {
+    id: string;
+    status: 'pending' | 'approved' | 'rejected';
+    created_at: string;
+  } | null;
   recent_members: Array<{
     id: string;
     user_id: string;
@@ -80,43 +85,61 @@ export default function LeagueDetail() {
   const [error, setError] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinForm, setJoinForm] = useState({
-    tier: "",
-    positions: [] as string[],
     message: "",
   });
+  const [joinRequestStatus, setJoinRequestStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
 
   // Fetch league data
-  useEffect(() => {
-    const fetchLeagueData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/leagues/${params.id}`);
-        const result = await response.json();
+  const fetchLeagueData = useCallback(async () => {
+    if (!params?.id) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/leagues/${params.id}`);
+      const result = await response.json();
 
-        if (result.success) {
-          setLeagueData(result.data);
+      if (result.success) {
+        setLeagueData(result.data);
+        // 가입 신청 상태 설정
+        if (result.data.user_join_request) {
+          setJoinRequestStatus(result.data.user_join_request.status);
         } else {
-          setError(result.error || "리그 정보를 불러올 수 없습니다");
+          setJoinRequestStatus('none');
         }
-      } catch (err) {
-        console.error("Error fetching league data:", err);
-        setError("리그 정보를 불러오는 중 오류가 발생했습니다");
-      } finally {
-        setLoading(false);
+      } else {
+        setError(result.error || "리그 정보를 불러올 수 없습니다");
       }
-    };
-
-    if (params?.id) {
-      fetchLeagueData();
+    } catch (err) {
+      console.error("Error fetching league data:", err);
+      setError("리그 정보를 불러오는 중 오류가 발생했습니다");
+    } finally {
+      setLoading(false);
     }
   }, [params?.id]);
 
+  useEffect(() => {
+    fetchLeagueData();
+  }, [fetchLeagueData]);
+
+  // 페이지 포커스 시 상태 재확인
+  useEffect(() => {
+    const handleFocus = () => {
+      if (params?.id && leagueData) {
+        // 간단한 상태 재확인을 위해 리그 데이터 다시 로드
+        fetchLeagueData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [params?.id, leagueData, fetchLeagueData]);
+
   // Handle join form submission
   const handleJoinSubmit = async () => {
-    if (!joinForm.tier || joinForm.positions.length === 0) {
+    if (!joinForm.message.trim()) {
       toast({
         title: "입력 오류",
-        description: "티어와 포지션을 모두 선택해주세요",
+        description: "가입 메시지를 입력해주세요",
         variant: "destructive",
       });
       return;
@@ -149,7 +172,8 @@ export default function LeagueDetail() {
           description: result.message || "가입 신청이 완료되었습니다",
         });
         setShowJoinForm(false);
-        setJoinForm({ tier: "", positions: [], message: "" });
+        setJoinForm({ message: "" });
+        setJoinRequestStatus('pending'); // 로컬 상태 업데이트
       } else {
         toast({
           title: "가입 신청 실패",
@@ -168,15 +192,6 @@ export default function LeagueDetail() {
     }
   };
 
-  // Handle position selection
-  const handlePositionToggle = (position: string) => {
-    setJoinForm((prev) => ({
-      ...prev,
-      positions: prev.positions.includes(position)
-        ? prev.positions.filter((p) => p !== position)
-        : [...prev.positions, position],
-    }));
-  };
 
   if (loading || !params?.id) {
     return (
@@ -214,6 +229,39 @@ export default function LeagueDetail() {
       default:
         return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
+  };
+
+  const getJoinButtonState = () => {
+    if (joinRequestStatus === 'pending') {
+      return {
+        text: "신청 대기 중",
+        disabled: true,
+        variant: "secondary" as const,
+        icon: <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      };
+    }
+    if (joinRequestStatus === 'approved') {
+      return {
+        text: "가입 완료",
+        disabled: true,
+        variant: "default" as const,
+        icon: <UserPlus className="mr-2 h-4 w-4" />
+      };
+    }
+    if (joinRequestStatus === 'rejected') {
+      return {
+        text: "다시 신청하기",
+        disabled: false,
+        variant: "hero" as const,
+        icon: <UserPlus className="mr-2 h-4 w-4" />
+      };
+    }
+    return {
+      text: "가입 신청하기",
+      disabled: false,
+      variant: "hero" as const,
+      icon: <UserPlus className="mr-2 h-4 w-4" />
+    };
   };
 
   return (
@@ -291,15 +339,21 @@ export default function LeagueDetail() {
             </div>
 
             <div className="flex flex-col space-y-4">
-              <Button
-                variant="hero"
-                size="lg"
-                onClick={() => setShowJoinForm(true)}
-                className="text-lg px-8 py-4"
-              >
-                <UserPlus className="mr-2 h-5 w-5" />
-                가입 신청하기
-              </Button>
+              {(() => {
+                const buttonState = getJoinButtonState();
+                return (
+                  <Button
+                    variant={buttonState.variant}
+                    size="lg"
+                    onClick={() => setShowJoinForm(true)}
+                    disabled={buttonState.disabled}
+                    className="text-lg px-8 py-4"
+                  >
+                    {buttonState.icon}
+                    {buttonState.text}
+                  </Button>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -391,57 +445,7 @@ export default function LeagueDetail() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    티어 선택 (필수)
-                  </label>
-                  <select
-                    className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground"
-                    value={joinForm.tier}
-                    onChange={(e) =>
-                      setJoinForm((prev) => ({ ...prev, tier: e.target.value }))
-                    }
-                  >
-                    <option value="">티어를 선택하세요</option>
-                    <option value="Unranked">언랭크</option>
-                    <option value="Iron">아이언</option>
-                    <option value="Bronze">브론즈</option>
-                    <option value="Silver">실버</option>
-                    <option value="Gold">골드</option>
-                    <option value="Platinum">플래티넘</option>
-                    <option value="Emerald">에메랄드</option>
-                    <option value="Diamond">다이아몬드</option>
-                    <option value="Master">마스터</option>
-                    <option value="Grandmaster">그랜드마스터</option>
-                    <option value="Challenger">챌린저</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    포지션 선택 (필수, 다중 선택)
-                  </label>
-                  <div className="space-y-2">
-                    {["Top", "Jungle", "Mid", "ADC", "Support"].map(
-                      (position) => (
-                        <label
-                          key={position}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            className="rounded border-border"
-                            checked={joinForm.positions.includes(position)}
-                            onChange={() => handlePositionToggle(position)}
-                          />
-                          <span className="text-foreground">{position}</span>
-                        </label>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    신청 메시지 (선택)
+                    신청 메시지 (필수)
                   </label>
                   <textarea
                     className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground"
@@ -449,10 +453,7 @@ export default function LeagueDetail() {
                     placeholder="가입 신청 메시지를 입력하세요"
                     value={joinForm.message}
                     onChange={(e) =>
-                      setJoinForm((prev) => ({
-                        ...prev,
-                        message: e.target.value,
-                      }))
+                      setJoinForm({ message: e.target.value })
                     }
                   />
                 </div>

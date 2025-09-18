@@ -117,7 +117,7 @@ export default function Universe() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -148,7 +148,7 @@ export default function Universe() {
             setLeagues((prev) => [...prev, ...response.data]);
           }
           setCurrentPage(response.pagination.page);
-          setTotalPages(response.pagination.totalPages);
+          setTotal(response.pagination.total);
           setHasMore(response.pagination.hasMore);
         } else {
           setError("리그를 불러오는데 실패했습니다.");
@@ -228,7 +228,7 @@ export default function Universe() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            {leagues.length}개 표시 중 (총 {totalPages * 12}개)
+            {leagues.length}개 표시 중 (총 {total}개)
           </p>
         </div>
 

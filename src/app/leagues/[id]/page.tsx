@@ -396,7 +396,7 @@ export default function LeaguePage() {
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <Crown className="h-8 w-8 text-primary flex-shrink-0" />
-            <RoleBadge role={mockLeagueOverview.role as "Owner" | "Admin" | "Member"} />
+            <RoleBadge role={mockLeagueOverview.role.toLowerCase() as "owner" | "admin" | "member"} />
             <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(mockLeagueOverview.type)}`}>
               {mockLeagueOverview.type}
             </span>
@@ -691,7 +691,7 @@ export default function LeaguePage() {
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
-                            <RoleBadge role={member.role as "Owner" | "Admin" | "Member"} />
+                            <RoleBadge role={member.role.toLowerCase() as "owner" | "admin" | "member"} />
                           </div>
                           <PositionTags positions={member.positions} />
                           <p className="text-xs text-muted-foreground">
@@ -960,7 +960,7 @@ export default function LeaguePage() {
                           <p className="text-sm text-muted-foreground">{admin.email}</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RoleBadge role={admin.role as "Owner" | "Admin" | "Member"} />
+                          <RoleBadge role={admin.role.toLowerCase() as "owner" | "admin" | "member"} />
                           {admin.role === "Admin" && (
                             <Button
                               size="sm"

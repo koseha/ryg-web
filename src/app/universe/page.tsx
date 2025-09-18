@@ -41,7 +41,7 @@ interface League {
   } | null;
   region: string;
   type: string;
-  rules: any[];
+  rules: string[];
   accepting: boolean;
 }
 

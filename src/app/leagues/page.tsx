@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Crown, Users, Calendar, Plus, Trophy, Star, Loader2, X } from "lucide-react";
+import { Users, Calendar, Plus, Trophy, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,7 +65,7 @@ export default function MyLeagues() {
       } else {
         setError(data.error || 'Failed to fetch leagues');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch leagues');
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export default function MyLeagues() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "리그 생성 실패",
         description: "네트워크 오류가 발생했습니다.",
@@ -128,16 +128,6 @@ export default function MyLeagues() {
     createLeague(createForm);
   };
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "Owner":
-        return <Crown className="h-4 w-4" />;
-      case "Admin":
-        return <Star className="h-4 w-4" />;
-      default:
-        return <Users className="h-4 w-4" />;
-    }
-  };
 
 
   const formatDate = (dateString: string) => {
@@ -250,7 +240,7 @@ export default function MyLeagues() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-2 ml-4">
-                    <RoleBadge role={league.my_role as "Owner" | "Admin" | "Member"} />
+                    <RoleBadge role={league.my_role.toLowerCase() as "owner" | "admin" | "member"} />
                   </div>
                 </div>
 

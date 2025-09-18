@@ -21,8 +21,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const offset = (page - 1) * limit;
 
-    // Build query with filters
-    let query = supabase.from("leagues").select("*", { count: "exact" });
+    // Build query with filters - league_stats와 조인
+    let query = supabase
+      .from("leagues")
+      .select(`
+        *,
+        league_stats (
+          member_count,
+          match_count,
+          last_matched_at
+        )
+      `, { count: "exact" });
 
     // Filter by search term - SQL 인젝션 방지
     if (search) {
@@ -45,7 +54,8 @@ export async function GET(request: NextRequest) {
     if (sortBy === "newest") {
       query = query.order("created_at", { ascending: false });
     } else if (sortBy === "members") {
-      query = query.order("member_count", { ascending: false });
+      // member_count로 정렬할 때는 league_stats 테이블의 데이터 사용
+      query = query.order("league_stats(member_count)", { ascending: false });
     } else if (sortBy === "name") {
       query = query.order("name", { ascending: true });
     }
@@ -62,12 +72,41 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 데이터 변환 - league_stats 정보를 평면화하고 owner 닉네임 조회
+    const transformedData = await Promise.all(
+      data?.map(async (league) => {
+        // 리그 소유자 정보 조회
+        let owner = null;
+        if (league.owner_id) {
+          const { data: ownerProfile } = await supabase
+            .from("profiles")
+            .select("id, nickname, avatar_url")
+            .eq("id", league.owner_id)
+            .single();
+          owner = ownerProfile;
+        }
+
+        return {
+          ...league,
+          member_count: league.league_stats?.[0]?.member_count || 1,
+          match_count: league.league_stats?.[0]?.match_count || 0,
+          last_matched_at: league.league_stats?.[0]?.last_matched_at || null,
+          owner: owner ? {
+            id: owner.id,
+            nickname: owner.nickname,
+            avatar_url: owner.avatar_url
+          } : null,
+          league_stats: undefined // 원본 데이터에서 제거
+        };
+      }) || []
+    );
+
     const total = count || 0;
     const hasMore = offset + limit < total;
 
     return NextResponse.json({
       success: true,
-      data: data || [],
+      data: transformedData,
       pagination: {
         page,
         limit,
@@ -165,12 +204,19 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
       );
     }
 
-    // 내가 가입한 리그 조회
+    // 내가 가입한 리그 조회 - league_stats와 조인
     const { data, error, count } = await supabase
       .from("league_members")
       .select(`
         *,
-        leagues (*)
+        leagues (
+          *,
+          league_stats (
+            member_count,
+            match_count,
+            last_matched_at
+          )
+        )
       `, { count: "exact" })
       .eq("user_id", user.id)
       .range(offset, offset + limit - 1);
@@ -202,7 +248,9 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
           description: member.leagues?.description,
           region: member.leagues?.region,
           type: member.leagues?.type,
-          member_count: member.leagues?.member_count,
+          member_count: member.leagues?.league_stats?.[0]?.member_count || 1,
+          match_count: member.leagues?.league_stats?.[0]?.match_count || 0,
+          last_matched_at: member.leagues?.league_stats?.[0]?.last_matched_at || null,
           created_at: member.leagues?.created_at,
           updated_at: member.leagues?.updated_at,
           owner: owner ? {

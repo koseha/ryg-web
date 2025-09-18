@@ -25,17 +25,24 @@ import Link from "next/link";
 
 // API 타입 정의
 interface League {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  memberCount: number;
-  createdAt: string;
-  owner: string;
+  member_count: number;
+  match_count: number;
+  last_matched_at: string | null;
+  created_at: string;
+  updated_at: string;
+  owner_id: string;
+  owner: {
+    id: string;
+    nickname: string;
+    avatar_url: string | null;
+  } | null;
   region: string;
   type: string;
-  totalMatches: number;
-  recentMatchDate: string;
-  minTier: string;
+  rules: any[];
+  accepting: boolean;
 }
 
 interface ApiResponse {
@@ -302,11 +309,11 @@ export default function Universe() {
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
-                      <span>{league.memberCount}명 참여중</span>
+                      <span>{league.member_count}명 참여중</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Trophy className="h-4 w-4" />
-                      <span>{league.totalMatches}경기 진행됨</span>
+                      <span>{league.match_count}경기 진행됨</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -314,14 +321,16 @@ export default function Universe() {
                       <Calendar className="h-4 w-4" />
                       <span>
                         생성일:{" "}
-                        {new Date(league.createdAt).toLocaleDateString()}
+                        {new Date(league.created_at).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
                       <span>
-                        최근 매치:{" "}
-                        {new Date(league.recentMatchDate).toLocaleDateString()}
+                        최근 매치: {league.last_matched_at 
+                          ? new Date(league.last_matched_at).toLocaleDateString()
+                          : "없음"
+                        }
                       </span>
                     </div>
                   </div>
@@ -332,7 +341,7 @@ export default function Universe() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">책임자: </span>
                     <span className="text-primary font-medium">
-                      {league.owner}
+                      {league.owner?.nickname || "알 수 없음"}
                     </span>
                   </div>
                   <Button asChild variant="outline" size="sm">

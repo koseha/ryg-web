@@ -11,7 +11,10 @@ export async function GET(
     const { id: leagueId } = await params;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },
@@ -37,14 +40,16 @@ export async function GET(
     // 리그 정보와 통계를 JOIN으로 조회
     const { data: league, error: leagueError } = await supabase
       .from("leagues")
-      .select(`
+      .select(
+        `
         *,
         league_stats!inner (
           member_count,
           match_count,
           last_matched_at
         )
-      `)
+      `
+      )
       .eq("id", leagueId)
       .is("deleted_at", null) // 삭제되지 않은 리그만 조회
       .single();
@@ -58,8 +63,8 @@ export async function GET(
     }
 
     // league_stats가 배열인지 객체인지 확인
-    const stats = Array.isArray(league.league_stats) 
-      ? league.league_stats[0] 
+    const stats = Array.isArray(league.league_stats)
+      ? league.league_stats[0]
       : league.league_stats;
 
     return NextResponse.json({
@@ -103,7 +108,10 @@ export async function PATCH(
     const { name, description, rules, accepting } = body;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },
@@ -169,7 +177,10 @@ export async function DELETE(
     const { id: leagueId } = await params;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },

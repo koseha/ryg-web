@@ -61,7 +61,7 @@ export async function POST(
     }
 
     // 책임자 위임 함수 호출
-    const { data, error } = await supabase.rpc("transfer_league_ownership", {
+    const { error } = await supabase.rpc("transfer_league_ownership", {
       p_league_id: leagueId,
       p_current_owner_id: user.id,
       p_new_owner_id: newOwnerId,

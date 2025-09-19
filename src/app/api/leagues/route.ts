@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const offset = (page - 1) * limit;
 
-    // Build query with filters - league_stats와 조인
+    // Build query with filters - league_stats와 LEFT JOIN
     let query = supabase
       .from("leagues")
       .select(`
@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query;
 
     if (error) {
+      console.error("Query error:", error);
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500 }
@@ -86,11 +87,16 @@ export async function GET(request: NextRequest) {
           owner = ownerProfile;
         }
 
+        // league_stats가 배열인지 객체인지 확인
+        const stats = Array.isArray(league.league_stats) 
+          ? league.league_stats[0] 
+          : league.league_stats;
+
         return {
           ...league,
-          member_count: league.league_stats?.[0]?.member_count || 1,
-          match_count: league.league_stats?.[0]?.match_count || 0,
-          last_matched_at: league.league_stats?.[0]?.last_matched_at || null,
+          member_count: stats?.member_count || 1,
+          match_count: stats?.match_count || 0,
+          last_matched_at: stats?.last_matched_at || null,
           owner: owner ? {
             id: owner.id,
             nickname: owner.nickname,

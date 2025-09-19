@@ -322,12 +322,11 @@ async function getUserStats(
   userId: string
 ) {
   try {
-    // 참여 중인 리그 수 조회
+    // 참여 중인 리그 수 조회 (league_members 테이블에는 status 컬럼이 없으므로 모든 멤버십을 카운트)
     const { count: totalLeagues, error: leaguesError } = await supabase
       .from("league_members")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("status", "approved");
+      .eq("user_id", userId);
 
     if (leaguesError) {
       console.error("Error fetching leagues count:", leaguesError);

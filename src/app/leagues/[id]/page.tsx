@@ -100,6 +100,18 @@ interface LeagueSettings {
   user_role: string;
 }
 
+interface LeagueActivity {
+  id: string;
+  activity_type: string;
+  title: string;
+  description: string;
+  target_id: string | null;
+  target_type: string | null;
+  metadata: Record<string, unknown>;
+  is_visible: boolean;
+  created_at: string;
+}
+
 
 const roleOptions = [
   { value: "all", label: "모든 역할" },
@@ -153,6 +165,7 @@ export default function LeaguePage() {
   const [members, setMembers] = useState<LeagueMember[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [activities, setActivities] = useState<LeagueActivity[]>([]);
 
   // 데이터 로딩 함수들
   const fetchLeagueSettings = useCallback(async () => {
@@ -216,6 +229,21 @@ export default function LeaguePage() {
     }
   }, [leagueId]);
 
+  const fetchActivities = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/leagues/${leagueId}/activities`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setActivities(result.data);
+      } else {
+        console.error("Failed to fetch activities:", result.error);
+      }
+    } catch (err) {
+      console.error("Error fetching activities:", err);
+    }
+  }, [leagueId]);
+
   // 초기 데이터 로딩
   useEffect(() => {
     const loadData = async () => {
@@ -231,6 +259,7 @@ export default function LeaguePage() {
           fetchMembers(),
           fetchJoinRequests(),
           fetchMatches(),
+          fetchActivities(),
         ]);
       } finally {
         setLoading(false);
@@ -257,6 +286,29 @@ export default function LeaguePage() {
       default:
         return "bg-secondary/20 text-secondary-foreground border-secondary/30";
     }
+  };
+
+  const getActivityIcon = (activityType: string) => {
+    switch (activityType) {
+      case "member_joined":
+        return { icon: "🎉", color: "bg-green-500" };
+      case "league_created":
+        return { icon: "🔥", color: "bg-orange-500" };
+      default:
+        return { icon: "📝", color: "bg-blue-500" };
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return "방금 전";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}일 전`;
+    return date.toLocaleDateString();
   };
   
   // State for different tabs
@@ -783,29 +835,26 @@ export default function LeaguePage() {
           <h2 className="text-2xl font-bold text-foreground mb-6">최근 활동 피드</h2>
           
           <div className="space-y-4">
-            <div className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-foreground">새 멤버가 가입했습니다</p>
-                <p className="text-sm text-muted-foreground">2시간 전</p>
-              </div>
-              </div>
-              
-            <div className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-foreground">새 매치가 생성되었습니다</p>
-                <p className="text-sm text-muted-foreground">4시간 전</p>
-                      </div>
+            {activities.length > 0 ? (
+              activities.map((activity) => {
+                const { color } = getActivityIcon(activity.activity_type);
+                return (
+                  <div key={activity.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
+                    <div className={`w-2 h-2 ${color} rounded-full`}></div>
+                    <div className="flex-1">
+                      <p className="text-foreground">{activity.title}</p>
+                      <p className="text-sm text-muted-foreground">{activity.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatTimeAgo(activity.created_at)}</p>
                     </div>
-            
-            <div className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-foreground">매치가 완료되었습니다</p>
-                <p className="text-sm text-muted-foreground">6시간 전</p>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">아직 활동이 없습니다</p>
+                <p className="text-sm text-muted-foreground mt-1">리그 활동이 시작되면 여기에 표시됩니다</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

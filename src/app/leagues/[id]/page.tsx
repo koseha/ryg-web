@@ -841,6 +841,7 @@ export default function LeaguePage() {
             <CopyButton 
               text={shareLink}
               className="self-start sm:self-center"
+              tooltipText="리그 소개 링크"
             />
           </div>
         </div>

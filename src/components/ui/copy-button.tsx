@@ -11,13 +11,15 @@ interface CopyButtonProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "outline" | "ghost";
+  tooltipText?: string;
 }
 
 export const CopyButton = ({ 
   text, 
   className, 
   size = "sm", 
-  variant = "outline" 
+  variant = "outline",
+  tooltipText = "코드 복사"
 }: CopyButtonProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -65,7 +67,7 @@ export const CopyButton = ({
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{copied ? "복사됨!" : "코드 복사"}</p>
+        <p>{copied ? "복사됨!" : tooltipText}</p>
       </TooltipContent>
     </Tooltip>
   );

@@ -56,6 +56,11 @@ export async function GET(
       );
     }
 
+    // league_stats가 배열인지 객체인지 확인
+    const stats = Array.isArray(league.league_stats) 
+      ? league.league_stats[0] 
+      : league.league_stats;
+
     return NextResponse.json({
       success: true,
       data: {
@@ -71,9 +76,9 @@ export async function GET(
         updated_at: league.updated_at,
         user_role: membership.role,
         // 통계 데이터 추가
-        member_count: league.league_stats?.member_count || 0,
-        match_count: league.league_stats?.match_count || 0,
-        last_matched_at: league.league_stats?.last_matched_at || null,
+        member_count: stats?.member_count || 0,
+        match_count: stats?.match_count || 0,
+        last_matched_at: stats?.last_matched_at || null,
       },
     });
   } catch (error) {

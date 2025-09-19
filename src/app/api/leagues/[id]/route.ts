@@ -110,15 +110,20 @@ export async function GET(
     // owner 정보를 adminMembers에서 찾기
     const ownerMember = adminMembers.find(member => member.role === 'owner');
 
+    // league_stats가 배열인지 객체인지 확인
+    const stats = Array.isArray(league.league_stats) 
+      ? league.league_stats[0] 
+      : league.league_stats;
+
     // 데이터 변환
     const transformedData = {
       id: league.id,
       name: league.name,
       description: league.description,
       rules: league.rules || [],
-      member_count: league.league_stats?.[0]?.member_count || 1,
-      match_count: league.league_stats?.[0]?.match_count || 0,
-      last_matched_at: league.league_stats?.[0]?.last_matched_at || null,
+      member_count: stats?.member_count || 1,
+      match_count: stats?.match_count || 0,
+      last_matched_at: stats?.last_matched_at || null,
       created_at: league.created_at,
       updated_at: league.updated_at,
       owner_id: league.owner_id,

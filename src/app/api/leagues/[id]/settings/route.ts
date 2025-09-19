@@ -34,10 +34,17 @@ export async function GET(
       );
     }
 
-    // 리그 정보 조회
+    // 리그 정보와 통계를 JOIN으로 조회
     const { data: league, error: leagueError } = await supabase
       .from("leagues")
-      .select("*")
+      .select(`
+        *,
+        league_stats!inner (
+          member_count,
+          match_count,
+          last_matched_at
+        )
+      `)
       .eq("id", leagueId)
       .single();
 
@@ -63,6 +70,10 @@ export async function GET(
         created_at: league.created_at,
         updated_at: league.updated_at,
         user_role: membership.role,
+        // 통계 데이터 추가
+        member_count: league.league_stats?.member_count || 0,
+        match_count: league.league_stats?.match_count || 0,
+        last_matched_at: league.league_stats?.last_matched_at || null,
       },
     });
   } catch (error) {

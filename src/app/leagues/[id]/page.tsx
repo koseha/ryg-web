@@ -98,6 +98,10 @@ interface LeagueSettings {
   created_at: string;
   updated_at: string;
   user_role: string;
+  // 통계 데이터 추가
+  member_count: number;
+  match_count: number;
+  last_matched_at: string | null;
 }
 
 interface LeagueActivity {
@@ -767,7 +771,7 @@ export default function LeaguePage() {
           <div className="card-glass p-4 sm:p-6 text-center">
             <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-3" />
             <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              {members.length}
+              {leagueSettings?.member_count || 0}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground">총 멤버 수</div>
           </div>
@@ -775,7 +779,7 @@ export default function LeaguePage() {
           <div className="card-glass p-4 sm:p-6 text-center">
             <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-accent mx-auto mb-3" />
             <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              {matches.length}
+              {leagueSettings?.match_count || 0}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground">생성된 매치 수</div>
           </div>

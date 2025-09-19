@@ -300,9 +300,11 @@ export default function MyLeagues() {
                       <h3 className="text-lg font-semibold text-foreground mb-1">
                         {league.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {league.description}
-                      </p>
+                      <div className="flex-1 mb-3">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed h-[40px]">
+                          {league.description}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <RoleBadge role={league.my_role.toLowerCase() as "owner" | "admin" | "member"} />
@@ -373,9 +375,11 @@ export default function MyLeagues() {
                       <h3 className="text-lg font-semibold text-foreground mb-1">
                         {request.league.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {request.league.description}
-                      </p>
+                      <div className="flex-1 mb-3">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed h-[40px]">
+                          {request.league.description}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">

@@ -241,6 +241,13 @@ export default function LeaguePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, leagueId]); // fetch 함수들을 dependencies에서 제외하여 무한 루프 방지
 
+  // 공유 링크 생성
+  useEffect(() => {
+    if (typeof window !== 'undefined' && leagueId) {
+      setShareLink(`${window.location.origin}/universe/league/${leagueId}`);
+    }
+  }, [leagueId]);
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case "Plus":
@@ -262,6 +269,7 @@ export default function LeaguePage() {
   const [generatedCode, setGeneratedCode] = useState("");
   const [rules, setRules] = useState<string[]>([]);
   const [newRule, setNewRule] = useState("");
+  const [shareLink, setShareLink] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
@@ -668,12 +676,15 @@ export default function LeaguePage() {
               {leagueSettings.type}
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-glow break-words">
-            {leagueSettings.name}
-          </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground break-words">
-            {leagueSettings.description || "설명이 없습니다"}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-glow break-words">
+              {leagueSettings.name}
+            </h1>
+            <CopyButton 
+              text={shareLink}
+              className="self-start sm:self-center"
+            />
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -798,25 +809,6 @@ export default function LeaguePage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="card-glass p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">빠른 작업</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Button asChild variant="outline" className="h-14 sm:h-16 flex-col space-y-2">
-              <Link href={`/leagues/${leagueId}#matches`}>
-                <Play className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-sm sm:text-base">매치 생성하기</span>
-              </Link>
-            </Button>
-            
-            <Button asChild variant="outline" className="h-14 sm:h-16 flex-col space-y-2">
-              <Link href="/universe">
-                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-sm sm:text-base">멤버 초대하기</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
           </TabsContent>
 
           <TabsContent value="members">

@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Plus,
   Target,
-  Eye
+  Eye,
+  LogOut
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -438,6 +439,8 @@ export default function LeaguePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   // API에서 이미 필터링된 데이터를 사용하므로 별도 필터링 불필요
   const filteredMembers = members;
@@ -640,6 +643,43 @@ export default function LeaguePage() {
         variant: "destructive",
         duration: 5000,
       });
+    }
+  };
+
+  const handleLeaveLeague = async () => {
+    try {
+      setLeaving(true);
+      const response = await fetch(`/api/leagues/${leagueId}/leave`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "리그 탈퇴 완료",
+          description: result.message,
+          duration: 3000,
+        });
+        router.push("/leagues"); // 리그 목록으로 이동
+      } else {
+        toast({
+          title: "리그 탈퇴 실패",
+          description: result.error,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    } catch {
+      toast({
+        title: "오류 발생",
+        description: "리그 탈퇴 중 오류가 발생했습니다",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setLeaving(false);
+      setShowLeaveDialog(false);
     }
   };
 
@@ -1473,6 +1513,64 @@ export default function LeaguePage() {
                   </div>
                 </div>
 
+                {/* Owner Leave Section */}
+                <div className="card-glass p-6 border-orange-500/20">
+                  <h3 className="text-xl font-bold text-orange-500 mb-4">리그 탈퇴</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-orange-500/10 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-foreground">책임자 탈퇴</h4>
+                        <p className="text-sm text-muted-foreground">
+                          책임자는 먼저 다른 운영진에게 책임자를 위임한 후 탈퇴할 수 있습니다.
+                        </p>
+                      </div>
+                      
+                      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-500/10">
+                            <LogOut className="h-4 w-4 mr-2" />
+                            리그 탈퇴
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center space-x-2">
+                              <LogOut className="h-5 w-5 text-orange-500" />
+                              <span>책임자 탈퇴 확인</span>
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              책임자는 먼저 다른 운영진에게 책임자를 위임한 후 탈퇴할 수 있습니다.
+                              <br /><br />
+                              <strong>탈퇴 조건:</strong>
+                              <br />• 다른 운영진(admin)이 있어야 합니다
+                              <br />• 먼저 책임자를 다른 운영진에게 위임해야 합니다
+                              <br />• 위임 후에는 일반 운영진이 되어 탈퇴할 수 있습니다
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>취소</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                setShowLeaveDialog(false);
+                                toast({
+                                  title: "위임 필요",
+                                  description: "먼저 다른 운영진에게 책임자를 위임해주세요.",
+                                  variant: "destructive",
+                                  duration: 5000,
+                                });
+                              }}
+                              className="bg-orange-500 hover:bg-orange-600"
+                            >
+                              확인
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Danger Zone */}
                 <div className="card-glass p-6 border-red-500/20">
                   <h3 className="text-xl font-bold text-red-500 mb-4">위험 구역</h3>
@@ -1520,15 +1618,78 @@ export default function LeaguePage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-16">
-                <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <h3 className="text-2xl font-bold mb-2 text-muted-foreground">접근 권한이 없습니다</h3>
-                <p className="text-muted-foreground mb-6">
-                  리그 설정은 책임자(Owner)만 접근할 수 있습니다.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  리그 설정이 필요하시면 책임자에게 문의하세요.
-                </p>
+              <div className="space-y-6">
+                <div className="text-center py-16">
+                  <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <h3 className="text-2xl font-bold mb-2 text-muted-foreground">접근 권한이 없습니다</h3>
+                  <p className="text-muted-foreground mb-6">
+                    리그 설정은 책임자(Owner)만 접근할 수 있습니다.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    리그 설정이 필요하시면 책임자에게 문의하세요.
+                  </p>
+                </div>
+
+                {/* 리그 탈퇴 섹션 (admin, member만) */}
+                {leagueSettings.user_role === "admin" || leagueSettings.user_role === "member" ? (
+                  <div className="card-glass p-6 border-orange-500/20">
+                    <h3 className="text-xl font-bold text-orange-500 mb-4">리그 탈퇴</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-orange-500/10 rounded-lg">
+                        <div>
+                          <h4 className="font-medium text-foreground">리그에서 탈퇴하기</h4>
+                          <p className="text-sm text-muted-foreground">
+                            리그에서 탈퇴하면 더 이상 멤버가 아니며, 모든 권한이 제거됩니다.
+                          </p>
+                        </div>
+                        
+                        <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-500/10">
+                              <LogOut className="h-4 w-4 mr-2" />
+                              리그 탈퇴
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center space-x-2">
+                                <LogOut className="h-5 w-5 text-orange-500" />
+                                <span>리그 탈퇴 확인</span>
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                정말로 이 리그에서 탈퇴하시겠습니까?
+                                <br /><br />
+                                <strong>주의사항:</strong>
+                                <br />• 탈퇴 후에는 리그 멤버가 아닙니다
+                                <br />• 모든 권한과 접근이 제거됩니다
+                                <br />• 다시 가입하려면 새로 신청해야 합니다
+                                <br />• 생성한 매치는 리그에 남아있습니다
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>취소</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleLeaveLeague}
+                                disabled={leaving}
+                                className="bg-orange-500 hover:bg-orange-600"
+                              >
+                                {leaving ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    탈퇴 중...
+                                  </>
+                                ) : (
+                                  "탈퇴"
+                                )}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
 
@@ -1544,11 +1705,9 @@ export default function LeaguePage() {
                     정말로 이 운영진에게 책임자 권한을 위임하시겠습니까?
                     <br /><br />
                     <strong>주의사항:</strong>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li>위임 후에는 본인이 일반 운영진이 됩니다</li>
-                      <li>책임자 권한은 위임받은 운영진에게로 이전됩니다</li>
-                      <li>이 작업은 되돌릴 수 없습니다</li>
-                    </ul>
+                    <br />• 위임 후에는 본인이 일반 운영진이 됩니다
+                    <br />• 책임자 권한은 위임받은 운영진에게로 이전됩니다
+                    <br />• 이 작업은 되돌릴 수 없습니다
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

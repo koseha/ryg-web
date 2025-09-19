@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// 헬퍼 함수: 리그 멤버들의 user_id 목록 조회
+async function getLeagueMemberUserIds(leagueId: string, supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: members } = await supabase
+    .from("league_members")
+    .select("user_id")
+    .eq("league_id", leagueId);
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return members?.map((member: any) => member.user_id) || [];
+}
+
 // 멤버 목록 조회
 export async function GET(
   request: NextRequest,
@@ -45,7 +56,150 @@ export async function GET(
     const tierFilter = searchParams.get('tier');
     const positionFilter = searchParams.get('position');
 
-    // 멤버 목록 조회 (필터링 + 페이지네이션)
+    // tier나 position 필터가 있는 경우 다른 방식으로 처리
+    if (tierFilter || positionFilter) {
+      // 1. 먼저 profiles에서 필터링된 user_id들을 가져옴
+      let profilesQuery = supabase
+        .from("profiles")
+        .select("id")
+        .in("id", await getLeagueMemberUserIds(leagueId, supabase));
+
+      if (tierFilter) {
+        profilesQuery = profilesQuery.eq("tier", tierFilter);
+      }
+
+      const { data: filteredProfiles, error: profilesError } = await profilesQuery;
+      
+      if (profilesError) {
+        console.error("Error fetching filtered profiles:", profilesError);
+        return NextResponse.json(
+          { success: false, error: "프로필 필터링에 실패했습니다" },
+          { status: 500 }
+        );
+      }
+
+      const filteredUserIds = filteredProfiles?.map(p => p.id) || [];
+
+      // 2. 필터링된 user_id들로 league_members 조회
+      let membersQuery = supabase
+        .from("league_members")
+        .select("id, user_id, role, joined_at")
+        .eq("league_id", leagueId)
+        .in("user_id", filteredUserIds);
+
+      if (roleFilter) {
+        membersQuery = membersQuery.eq("role", roleFilter);
+      }
+
+      const { data: members, error: membersError } = await membersQuery
+        .order("joined_at", { ascending: true })
+        .range(offset, offset + limit - 1);
+
+      // 3. 전체 카운트 조회
+      let countQuery = supabase
+        .from("league_members")
+        .select("*", { count: "exact", head: true })
+        .eq("league_id", leagueId)
+        .in("user_id", filteredUserIds);
+
+      if (roleFilter) {
+        countQuery = countQuery.eq("role", roleFilter);
+      }
+
+      const { count: totalCount, error: countError } = await countQuery;
+
+      if (countError) {
+        console.error("Error fetching member count:", countError);
+        return NextResponse.json(
+          { success: false, error: "멤버 수를 불러오는데 실패했습니다" },
+          { status: 500 }
+        );
+      }
+
+      if (membersError) {
+        console.error("Error fetching members:", membersError);
+        return NextResponse.json(
+          { success: false, error: "멤버 목록을 불러오는데 실패했습니다" },
+          { status: 500 }
+        );
+      }
+
+      // 4. 프로필 정보 조회
+      const userIds = members?.map(member => member.user_id) || [];
+      const { data: profiles, error: profilesError2 } = await supabase
+        .from("profiles")
+        .select("id, nickname, avatar_url, tier, positions")
+        .in("id", userIds);
+
+      if (profilesError2) {
+        console.error("Error fetching profiles:", profilesError2);
+        return NextResponse.json(
+          { success: false, error: "프로필 정보를 불러오는데 실패했습니다" },
+          { status: 500 }
+        );
+      }
+
+      // 5. 데이터 조합 및 position 필터링
+      const profileMap = new Map(profiles?.map(profile => [profile.id, profile]) || []);
+      let transformedMembers = members?.map(member => {
+        const profile = profileMap.get(member.user_id);
+        return {
+          id: member.id,
+          user_id: member.user_id,
+          nickname: profile?.nickname || "알 수 없음",
+          avatar_url: profile?.avatar_url || null,
+          tier: profile?.tier || "Unranked",
+          positions: profile?.positions || [],
+          role: member.role,
+          joined_at: member.joined_at,
+        };
+      }) || [];
+
+      // position 필터 적용
+      if (positionFilter) {
+        transformedMembers = transformedMembers.filter(member => 
+          member.positions.includes(positionFilter)
+        );
+      }
+
+      // 멤버 현황 정보 조회 (필터링 없이)
+      const { data: allMembers, error: allMembersError } = await supabase
+        .from("league_members")
+        .select("role")
+        .eq("league_id", leagueId);
+
+      if (allMembersError) {
+        console.error("Error fetching all members:", allMembersError);
+      }
+
+      // 현황 계산
+      const totalMembers = allMembers?.length || 0;
+      const adminCount = allMembers?.filter(member => ["owner", "admin"].includes(member.role)).length || 0;
+
+      // 페이지네이션 정보 계산
+      const totalPages = Math.ceil((totalCount || 0) / limit);
+      const hasMore = page < totalPages;
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          members: transformedMembers,
+          pagination: {
+            page,
+            limit,
+            total: totalCount || 0,
+            totalPages,
+            hasMore
+          },
+          stats: {
+            totalMembers,
+            adminCount
+          }
+        }
+      });
+    }
+
+    // tier나 position 필터가 없는 경우 기존 로직 사용
     let membersQuery = supabase
       .from("league_members")
       .select("id, user_id, role, joined_at")

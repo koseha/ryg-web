@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
           match_count,
           last_matched_at
         )
-      `, { count: "exact" });
+      `, { count: "exact" })
+      .is("deleted_at", null); // 삭제되지 않은 리그만 조회
 
     // Filter by search term - SQL 인젝션 방지
     if (search) {
@@ -210,7 +211,7 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
       .from("league_members")
       .select(`
         *,
-        leagues (
+        leagues!inner (
           *,
           league_stats (
             member_count,
@@ -219,7 +220,8 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
           )
         )
       `)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("leagues.deleted_at", null); // 삭제되지 않은 리그만 조회
 
     if (joinedError) {
       console.error("Error fetching joined leagues:", joinedError);
@@ -230,7 +232,7 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
       .from("league_join_requests")
       .select(`
         *,
-        leagues (
+        leagues!inner (
           *,
           league_stats (
             member_count,
@@ -240,7 +242,8 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
         )
       `)
       .eq("user_id", user.id)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .is("leagues.deleted_at", null); // 삭제되지 않은 리그만 조회
 
     if (pendingError) {
       console.error("Error fetching pending requests:", pendingError);

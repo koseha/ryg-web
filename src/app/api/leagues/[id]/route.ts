@@ -28,6 +28,7 @@ export async function GET(
         )
       `)
       .eq("id", leagueId)
+      .is("deleted_at", null) // 삭제되지 않은 리그만 조회
       .single();
 
     if (leagueError || !league) {

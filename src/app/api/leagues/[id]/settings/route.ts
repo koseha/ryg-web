@@ -46,6 +46,7 @@ export async function GET(
         )
       `)
       .eq("id", leagueId)
+      .is("deleted_at", null) // 삭제되지 않은 리그만 조회
       .single();
 
     if (leagueError) {
@@ -191,10 +192,10 @@ export async function DELETE(
       );
     }
 
-    // 리그 삭제 (CASCADE로 관련 데이터도 함께 삭제됨)
+    // 리그 소프트 삭제 (deleted_at 설정)
     const { error: deleteError } = await supabase
       .from("leagues")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", leagueId);
 
     if (deleteError) {

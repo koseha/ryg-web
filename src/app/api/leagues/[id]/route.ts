@@ -49,7 +49,7 @@ export async function GET(
       `)
       .eq("league_id", leagueId)
       .in("role", ["owner", "admin"])
-      .order("role", { ascending: true }); // owner가 먼저, admin이 나중에
+      .order("role", { ascending: false }); // owner가 먼저, admin이 나중에
 
     if (adminsError) {
       console.error("Error fetching admins:", adminsError);

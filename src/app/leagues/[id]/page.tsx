@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  Crown, 
-  Users, 
-  Calendar, 
-  Trophy, 
+import {
+  Crown,
+  Users,
+  Calendar,
+  Trophy,
   Play,
   MoreVertical,
   Save,
@@ -17,7 +17,7 @@ import {
   Plus,
   Target,
   Eye,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -135,12 +135,11 @@ interface PaginationInfo {
   hasMore: boolean;
 }
 
-
 const roleOptions = [
   { value: "all", label: "모든 역할" },
   { value: "owner", label: "책임자" },
   { value: "admin", label: "운영진" },
-  { value: "member", label: "멤버" }
+  { value: "member", label: "멤버" },
 ];
 
 const tierOptions = [
@@ -155,7 +154,7 @@ const tierOptions = [
   { value: "Silver", label: "실버" },
   { value: "Bronze", label: "브론즈" },
   { value: "Iron", label: "아이언" },
-  { value: "Unranked", label: "언랭크" }
+  { value: "Unranked", label: "언랭크" },
 ];
 
 const positionOptions = [
@@ -164,15 +163,14 @@ const positionOptions = [
   { value: "Jungle", label: "정글" },
   { value: "Mid", label: "미드" },
   { value: "ADC", label: "원딜" },
-  { value: "Support", label: "서포터" }
+  { value: "Support", label: "서포터" },
 ];
 
 const statusOptions = [
   { value: "all", label: "모든 상태" },
   { value: "active", label: "진행중" },
-  { value: "completed", label: "완료" }
+  { value: "completed", label: "완료" },
 ];
-
 
 export default function LeaguePage() {
   const params = useParams();
@@ -184,18 +182,26 @@ export default function LeaguePage() {
   // 상태 관리
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [leagueSettings, setLeagueSettings] = useState<LeagueSettings | null>(null);
+  const [leagueSettings, setLeagueSettings] = useState<LeagueSettings | null>(
+    null
+  );
   const [members, setMembers] = useState<LeagueMember[]>([]);
-  const [membersPagination, setMembersPagination] = useState<PaginationInfo | null>(null);
+  const [membersPagination, setMembersPagination] =
+    useState<PaginationInfo | null>(null);
   const [membersLoading, setMembersLoading] = useState(false);
-  const [membersStats, setMembersStats] = useState<{ totalMembers: number; adminCount: number } | null>(null);
+  const [membersStats, setMembersStats] = useState<{
+    totalMembers: number;
+    adminCount: number;
+  } | null>(null);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [activities, setActivities] = useState<LeagueActivity[]>([]);
-  
+
   // 프로필 모달 상태
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(
+    null
+  );
   const [profileLoading, setProfileLoading] = useState(false);
 
   // 필터 상태
@@ -209,7 +215,7 @@ export default function LeaguePage() {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/settings`);
       const result = await response.json();
-      
+
       if (result.success) {
         setLeagueSettings(result.data);
         setRules(result.data.rules || []);
@@ -221,48 +227,57 @@ export default function LeaguePage() {
     }
   }, [leagueId]);
 
-  const fetchMembers = useCallback(async (page: number = 1, append: boolean = false, filters?: { role?: string, tier?: string, position?: string }) => {
-    try {
-      setMembersLoading(true);
-      
-      // 필터 파라미터 구성
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10'
-      });
-      
-      if (filters?.role && filters.role !== 'all') {
-        params.append('role', filters.role);
-      }
-      if (filters?.tier && filters.tier !== 'all') {
-        params.append('tier', filters.tier);
-      }
-      if (filters?.position && filters.position !== 'all') {
-        params.append('position', filters.position);
-      }
-      
-      const response = await fetch(`/api/leagues/${leagueId}/members?${params.toString()}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        if (append) {
-          // 기존 데이터에 추가
-          setMembers(prev => [...prev, ...result.data.members]);
-        } else {
-          // 새로 로드
-          setMembers(result.data.members);
+  const fetchMembers = useCallback(
+    async (
+      page: number = 1,
+      append: boolean = false,
+      filters?: { role?: string; tier?: string; position?: string }
+    ) => {
+      try {
+        setMembersLoading(true);
+
+        // 필터 파라미터 구성
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: "10",
+        });
+
+        if (filters?.role && filters.role !== "all") {
+          params.append("role", filters.role);
         }
-        setMembersPagination(result.data.pagination);
-        setMembersStats(result.data.stats);
-      } else {
-        console.error("Failed to fetch members:", result.error);
+        if (filters?.tier && filters.tier !== "all") {
+          params.append("tier", filters.tier);
+        }
+        if (filters?.position && filters.position !== "all") {
+          params.append("position", filters.position);
+        }
+
+        const response = await fetch(
+          `/api/leagues/${leagueId}/members?${params.toString()}`
+        );
+        const result = await response.json();
+
+        if (result.success) {
+          if (append) {
+            // 기존 데이터에 추가
+            setMembers((prev) => [...prev, ...result.data.members]);
+          } else {
+            // 새로 로드
+            setMembers(result.data.members);
+          }
+          setMembersPagination(result.data.pagination);
+          setMembersStats(result.data.stats);
+        } else {
+          console.error("Failed to fetch members:", result.error);
+        }
+      } catch (err) {
+        console.error("Error fetching members:", err);
+      } finally {
+        setMembersLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching members:", err);
-    } finally {
-      setMembersLoading(false);
-    }
-  }, [leagueId]);
+    },
+    [leagueId]
+  );
 
   // 더보기 버튼 핸들러
   const loadMoreMembers = useCallback(() => {
@@ -270,16 +285,23 @@ export default function LeaguePage() {
       fetchMembers(membersPagination.page + 1, true, {
         role: roleFilter,
         tier: tierFilter,
-        position: positionFilter
+        position: positionFilter,
       });
     }
-  }, [membersPagination, membersLoading, fetchMembers, roleFilter, tierFilter, positionFilter]);
+  }, [
+    membersPagination,
+    membersLoading,
+    fetchMembers,
+    roleFilter,
+    tierFilter,
+    positionFilter,
+  ]);
 
   const fetchJoinRequests = useCallback(async () => {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/join-requests`);
       const result = await response.json();
-      
+
       if (result.success) {
         setJoinRequests(result.data);
       } else {
@@ -294,7 +316,7 @@ export default function LeaguePage() {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/matches`);
       const result = await response.json();
-      
+
       if (result.success) {
         setMatches(result.data);
       } else {
@@ -321,35 +343,38 @@ export default function LeaguePage() {
   }, [leagueId]);
 
   // 프로필 조회 함수
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    try {
-      setProfileLoading(true);
-      const response = await fetch(`/api/profiles/${userId}`);
-      const result = await response.json();
+  const fetchUserProfile = useCallback(
+    async (userId: string) => {
+      try {
+        setProfileLoading(true);
+        const response = await fetch(`/api/profiles/${userId}`);
+        const result = await response.json();
 
-      if (result.success) {
-        setSelectedProfile(result.data);
-        setShowProfileModal(true);
-      } else {
+        if (result.success) {
+          setSelectedProfile(result.data);
+          setShowProfileModal(true);
+        } else {
+          toast({
+            title: "프로필 조회 실패",
+            description: result.error,
+            variant: "destructive",
+            duration: 3000,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
         toast({
-          title: "프로필 조회 실패",
-          description: result.error,
+          title: "오류 발생",
+          description: "프로필을 불러오는 중 오류가 발생했습니다",
           variant: "destructive",
           duration: 3000,
         });
+      } finally {
+        setProfileLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching user profile:", err);
-      toast({
-        title: "오류 발생",
-        description: "프로필을 불러오는 중 오류가 발생했습니다",
-        variant: "destructive",
-        duration: 3000,
-      });
-    } finally {
-      setProfileLoading(false);
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   // 초기 데이터 로딩
   useEffect(() => {
@@ -379,7 +404,7 @@ export default function LeaguePage() {
 
   // 공유 링크 생성
   useEffect(() => {
-    if (typeof window !== 'undefined' && leagueId) {
+    if (typeof window !== "undefined" && leagueId) {
       setShareLink(`${window.location.origin}/universe/league/${leagueId}`);
     }
   }, [leagueId]);
@@ -390,7 +415,7 @@ export default function LeaguePage() {
       fetchMembers(1, false, {
         role: roleFilter,
         tier: tierFilter,
-        position: positionFilter
+        position: positionFilter,
       });
     }
   }, [roleFilter, tierFilter, positionFilter, leagueId, fetchMembers]);
@@ -421,14 +446,16 @@ export default function LeaguePage() {
     const now = new Date();
     const date = new Date(dateString);
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     if (diffInSeconds < 60) return "방금 전";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}분 전`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}시간 전`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}일 전`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)}시간 전`;
+    if (diffInSeconds < 2592000)
+      return `${Math.floor(diffInSeconds / 86400)}일 전`;
     return date.toLocaleDateString();
   };
-  
+
   // State for different tabs
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMatchTitle, setNewMatchTitle] = useState("");
@@ -438,7 +465,7 @@ export default function LeaguePage() {
   const [shareLink, setShareLink] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
-  const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
+  const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -447,23 +474,29 @@ export default function LeaguePage() {
 
   const filteredMatches = useMemo(() => {
     return matches
-    .filter(match => {
-      const matchesStatus = statusFilter === "all" || match.status === statusFilter;
-      return matchesStatus;
-    })
-    .sort((a, b) => {
-      // 상태별 정렬: 진행 중 > 완료
-      const statusOrder = { active: 0, completed: 1 };
-      return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
-    });
+      .filter((match) => {
+        const matchesStatus =
+          statusFilter === "all" || match.status === statusFilter;
+        return matchesStatus;
+      })
+      .sort((a, b) => {
+        // 상태별 정렬: 진행 중 > 완료
+        const statusOrder = { active: 0, completed: 1 };
+        return (
+          statusOrder[a.status as keyof typeof statusOrder] -
+          statusOrder[b.status as keyof typeof statusOrder]
+        );
+      });
   }, [matches, statusFilter]);
 
   // Helper functions
   const generateMatchCode = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
     for (let i = 0; i < 6; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
     }
     return result;
   };
@@ -525,9 +558,9 @@ export default function LeaguePage() {
 
     try {
       const response = await fetch(`/api/leagues/${leagueId}/matches`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: newMatchTitle,
@@ -572,9 +605,9 @@ export default function LeaguePage() {
     setIsSaving(true);
     try {
       const response = await fetch(`/api/leagues/${leagueId}/settings`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: leagueSettings.name,
@@ -609,14 +642,14 @@ export default function LeaguePage() {
         duration: 5000,
       });
     } finally {
-    setIsSaving(false);
+      setIsSaving(false);
     }
   };
 
   const handleDeleteLeague = async () => {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/settings`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const result = await response.json();
@@ -650,7 +683,7 @@ export default function LeaguePage() {
     try {
       setLeaving(true);
       const response = await fetch(`/api/leagues/${leagueId}/leave`, {
-        method: 'POST',
+        method: "POST",
       });
 
       const result = await response.json();
@@ -683,12 +716,15 @@ export default function LeaguePage() {
     }
   };
 
-  const handleRoleChange = async (memberId: string, newRole: "admin" | "member") => {
+  const handleRoleChange = async (
+    memberId: string,
+    newRole: "admin" | "member"
+  ) => {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/members`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           memberId,
@@ -723,17 +759,20 @@ export default function LeaguePage() {
     }
   };
 
-  const handleTransferOwnership = (adminId: number) => {
+  const handleTransferOwnership = (adminId: string) => {
     setSelectedAdminId(adminId);
     setShowTransferDialog(true);
   };
 
-  const handleJoinRequest = async (requestId: string, action: "approve" | "reject") => {
+  const handleJoinRequest = async (
+    requestId: string,
+    action: "approve" | "reject"
+  ) => {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/join-requests`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           requestId,
@@ -771,9 +810,12 @@ export default function LeaguePage() {
 
   const handleRemoveMember = async (memberId: string) => {
     try {
-      const response = await fetch(`/api/leagues/${leagueId}/members?memberId=${memberId}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/leagues/${leagueId}/members?memberId=${memberId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       const result = await response.json();
 
@@ -803,18 +845,58 @@ export default function LeaguePage() {
   };
 
   const confirmTransferOwnership = async () => {
-    if (selectedAdminId) {
-      // TODO: Implement actual ownership transfer API call
-      // This should:
-      // 1. Update the current owner to Admin
-      // 2. Update the selected admin to Owner
-      // 3. Update mockLeagueOverview.role
-      // 4. Refresh the page or update state
+    if (!selectedAdminId) return;
+
+    try {
+      const response = await fetch(
+        `/api/leagues/${leagueId}/transfer-ownership`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            newOwnerId: selectedAdminId,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "책임자 위임 완료",
+          description: result.message,
+          duration: 3000,
+        });
+
+        // 데이터 새로고침
+        await Promise.all([
+          fetchLeagueSettings(),
+          fetchMembers(),
+          fetchActivities(),
+        ]);
+      } else {
+        toast({
+          title: "책임자 위임 실패",
+          description: result.error,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error("Error transferring ownership:", error);
+      toast({
+        title: "오류 발생",
+        description: "책임자 위임 중 오류가 발생했습니다",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
       setShowTransferDialog(false);
       setSelectedAdminId(null);
     }
   };
-
 
   // 로딩 상태
   if (loading) {
@@ -836,7 +918,9 @@ export default function LeaguePage() {
       <div className="min-h-screen py-8 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-foreground mb-4">오류가 발생했습니다</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">
+              오류가 발생했습니다
+            </h1>
             <p className="text-muted-foreground mb-6">{error}</p>
             <Button onClick={() => window.location.reload()}>다시 시도</Button>
           </div>
@@ -851,8 +935,12 @@ export default function LeaguePage() {
       <div className="min-h-screen py-8 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-foreground mb-4">리그를 찾을 수 없습니다</h1>
-            <p className="text-muted-foreground mb-6">요청하신 리그가 존재하지 않거나 접근 권한이 없습니다.</p>
+            <h1 className="text-2xl font-bold text-foreground mb-4">
+              리그를 찾을 수 없습니다
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              요청하신 리그가 존재하지 않거나 접근 권한이 없습니다.
+            </p>
             <Button asChild>
               <Link href="/leagues">내 리그로 돌아가기</Link>
             </Button>
@@ -869,16 +957,27 @@ export default function LeaguePage() {
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <Crown className="h-8 w-8 text-primary flex-shrink-0" />
-            <RoleBadge role={leagueSettings.user_role.toLowerCase() as "owner" | "admin" | "member"} />
-            <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(leagueSettings.type)}`}>
+            <RoleBadge
+              role={
+                leagueSettings.user_role.toLowerCase() as
+                  | "owner"
+                  | "admin"
+                  | "member"
+              }
+            />
+            <span
+              className={`px-3 py-1 text-sm font-medium rounded-full border ${getTypeColor(
+                leagueSettings.type
+              )}`}
+            >
               {leagueSettings.type}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-glow break-words">
               {leagueSettings.name}
-          </h1>
-            <CopyButton 
+            </h1>
+            <CopyButton
               text={shareLink}
               className="self-start sm:self-center"
               tooltipText="리그 소개 링크"
@@ -889,122 +988,172 @@ export default function LeaguePage() {
         {/* Tab Navigation */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-8 h-auto">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-3">
+            <TabsTrigger
+              value="overview"
+              className="text-xs sm:text-sm py-2 px-3"
+            >
               <span className="hidden sm:inline">Overview</span>
               <span className="sm:hidden">개요</span>
             </TabsTrigger>
-            <TabsTrigger value="members" className="text-xs sm:text-sm py-2 px-3">
+            <TabsTrigger
+              value="members"
+              className="text-xs sm:text-sm py-2 px-3"
+            >
               <span className="hidden sm:inline">Members</span>
               <span className="sm:hidden">멤버</span>
             </TabsTrigger>
-            <TabsTrigger value="matches" className="text-xs sm:text-sm py-2 px-3">
+            <TabsTrigger
+              value="matches"
+              className="text-xs sm:text-sm py-2 px-3"
+            >
               <span className="hidden sm:inline">Matches</span>
               <span className="sm:hidden">매치</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs sm:text-sm py-2 px-3">
+            <TabsTrigger
+              value="settings"
+              className="text-xs sm:text-sm py-2 px-3"
+            >
               <span className="hidden sm:inline">Settings</span>
               <span className="sm:hidden">설정</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-          <div className="card-glass p-4 sm:p-6 text-center">
-            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-3" />
-            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              {leagueSettings?.member_count || 0}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">총 멤버 수</div>
-          </div>
-          
-          <div className="card-glass p-4 sm:p-6 text-center">
-            <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-accent mx-auto mb-3" />
-            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              {leagueSettings?.match_count || 0}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">생성된 매치 수</div>
-          </div>
-          
-          <div className="card-glass p-4 sm:p-6 text-center sm:col-span-2 lg:col-span-1">
-            <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mx-auto mb-3" />
-            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-              {joinRequests.length}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">대기 중인 신청</div>
-          </div>
-        </div>
-
-        {/* League Information */}
-        <div className="card-glass p-6 mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">리그 정보</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-2">설명</h3>
-              <p className="text-muted-foreground">{leagueSettings.description || "설명이 없습니다"}</p>
-            </div>
-
-            {/* Rules */}
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-3">리그 규칙</h3>
-              {leagueSettings.rules && leagueSettings.rules.length > 0 ? (
-              <ul className="space-y-2">
-                  {leagueSettings.rules.map((rule, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-muted-foreground">
-                    <span className="text-primary mt-1">•</span>
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
-              ) : (
-                <p className="text-muted-foreground">설정된 규칙이 없습니다</p>
-              )}
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-lg font-medium text-foreground mb-2">생성일</h3>
-                <p className="text-muted-foreground">{new Date(leagueSettings.created_at).toLocaleDateString()}</p>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+              <div className="card-glass p-4 sm:p-6 text-center">
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary mx-auto mb-3" />
+                <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                  {leagueSettings?.member_count || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  총 멤버 수
+                </div>
               </div>
-              
-              <div>
-                <h3 className="text-lg font-medium text-foreground mb-2">지역</h3>
-                <p className="text-muted-foreground">{leagueSettings.region}</p>
+
+              <div className="card-glass p-4 sm:p-6 text-center">
+                <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-accent mx-auto mb-3" />
+                <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                  {leagueSettings?.match_count || 0}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  생성된 매치 수
+                </div>
+              </div>
+
+              <div className="card-glass p-4 sm:p-6 text-center sm:col-span-2 lg:col-span-1">
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mx-auto mb-3" />
+                <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                  {joinRequests.length}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  대기 중인 신청
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Recent Activity Feed */}
-        <div className="card-glass p-6 mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">최근 활동 피드</h2>
-          
-          <div className="space-y-4">
-            {activities.length > 0 ? (
-              activities.map((activity) => {
-                const { color } = getActivityIcon(activity.activity_type);
-                return (
-                  <div key={activity.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-                    <div className={`w-2 h-2 ${color} rounded-full`}></div>
-              <div className="flex-1">
-                      <p className="text-foreground">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{formatTimeAgo(activity.created_at)}</p>
+            {/* League Information */}
+            <div className="card-glass p-6 mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                리그 정보
+              </h2>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    설명
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {leagueSettings.description || "설명이 없습니다"}
+                  </p>
+                </div>
+
+                {/* Rules */}
+                <div>
+                  <h3 className="text-lg font-medium text-foreground mb-3">
+                    리그 규칙
+                  </h3>
+                  {leagueSettings.rules && leagueSettings.rules.length > 0 ? (
+                    <ul className="space-y-2">
+                      {leagueSettings.rules.map((rule, index) => (
+                        <li
+                          key={index}
+                          className="flex items-start space-x-2 text-muted-foreground"
+                        >
+                          <span className="text-primary mt-1">•</span>
+                          <span>{rule}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      설정된 규칙이 없습니다
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      생성일
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {new Date(leagueSettings.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      지역
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {leagueSettings.region}
+                    </p>
+                  </div>
+                </div>
               </div>
-              </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">아직 활동이 없습니다</p>
-                <p className="text-sm text-muted-foreground mt-1">리그 활동이 시작되면 여기에 표시됩니다</p>
+            </div>
+
+            {/* Recent Activity Feed */}
+            <div className="card-glass p-6 mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                최근 활동 피드
+              </h2>
+
+              <div className="space-y-4">
+                {activities.length > 0 ? (
+                  activities.map((activity) => {
+                    const { color } = getActivityIcon(activity.activity_type);
+                    return (
+                      <div
+                        key={activity.id}
+                        className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg"
+                      >
+                        <div className={`w-2 h-2 ${color} rounded-full`}></div>
+                        <div className="flex-1">
+                          <p className="text-foreground">{activity.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatTimeAgo(activity.created_at)}
+                          </p>
+                        </div>
                       </div>
-            )}
-          </div>
-        </div>
-
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      아직 활동이 없습니다
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      리그 활동이 시작되면 여기에 표시됩니다
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="members">
@@ -1012,11 +1161,16 @@ export default function LeaguePage() {
               {/* Pending Applications */}
               {joinRequests.length > 0 && (
                 <div className="card-glass p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-6">가입 신청 대기중</h2>
-                  
+                  <h2 className="text-2xl font-bold text-foreground mb-6">
+                    가입 신청 대기중
+                  </h2>
+
                   <div className="space-y-4">
                     {joinRequests.map((request) => (
-                      <div key={request.id} className="p-4 bg-secondary/20 rounded-lg">
+                      <div
+                        key={request.id}
+                        className="p-4 bg-secondary/20 rounded-lg"
+                      >
                         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                           <div className="flex items-start space-x-4">
                             <Image
@@ -1028,23 +1182,45 @@ export default function LeaguePage() {
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                                <h3 className="text-lg font-medium text-foreground">{request.nickname}</h3>
+                                <h3 className="text-lg font-medium text-foreground">
+                                  {request.nickname}
+                                </h3>
                                 <div className="flex flex-wrap gap-2">
-                                  <TierBadge tier={request.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
+                                  <TierBadge
+                                    tier={
+                                      request.tier as
+                                        | "Challenger"
+                                        | "Grandmaster"
+                                        | "Master"
+                                        | "Diamond"
+                                        | "Emerald"
+                                        | "Platinum"
+                                        | "Gold"
+                                        | "Silver"
+                                        | "Bronze"
+                                        | "Iron"
+                                        | "Unranked"
+                                    }
+                                  />
                                   <PositionTags positions={request.positions} />
                                 </div>
                               </div>
-                              <p className="text-sm text-foreground mb-3 break-words">{request.message}</p>
+                              <p className="text-sm text-foreground mb-3 break-words">
+                                {request.message}
+                              </p>
                               <p className="text-xs text-muted-foreground">
-                                신청일: {new Date(request.applied_at).toLocaleDateString()}
+                                신청일:{" "}
+                                {new Date(
+                                  request.applied_at
+                                ).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="w-full sm:w-auto"
                               onClick={() => fetchUserProfile(request.user_id)}
                               disabled={profileLoading}
@@ -1052,25 +1228,30 @@ export default function LeaguePage() {
                               <Eye className="h-4 w-4 mr-1" />
                               프로필 보기
                             </Button>
-                            {leagueSettings.user_role === "owner" || leagueSettings.user_role === "admin" ? (
-                            <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                            {leagueSettings.user_role === "owner" ||
+                            leagueSettings.user_role === "admin" ? (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="flex-1 sm:flex-none"
-                                  onClick={() => handleJoinRequest(request.id, "approve")}
+                                  onClick={() =>
+                                    handleJoinRequest(request.id, "approve")
+                                  }
                                 >
-                                승인
-                              </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                                  승인
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="flex-1 sm:flex-none"
-                                  onClick={() => handleJoinRequest(request.id, "reject")}
+                                  onClick={() =>
+                                    handleJoinRequest(request.id, "reject")
+                                  }
                                 >
-                                거절
-                              </Button>
-                            </div>
+                                  거절
+                                </Button>
+                              </div>
                             ) : null}
                           </div>
                         </div>
@@ -1083,20 +1264,30 @@ export default function LeaguePage() {
               {/* Members Stats */}
               {membersStats && (
                 <div className="card-glass p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">멤버 현황</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">
+                    멤버 현황
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-3 p-4 bg-secondary/20 rounded-lg">
                       <Users className="h-8 w-8 text-primary" />
                       <div>
-                        <div className="text-2xl font-bold text-foreground">{membersStats.totalMembers}</div>
-                        <div className="text-sm text-muted-foreground">총 멤버 수</div>
+                        <div className="text-2xl font-bold text-foreground">
+                          {membersStats.totalMembers}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          총 멤버 수
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3 p-4 bg-secondary/20 rounded-lg">
                       <Crown className="h-8 w-8 text-yellow-500" />
                       <div>
-                        <div className="text-2xl font-bold text-foreground">{membersStats.adminCount}</div>
-                        <div className="text-sm text-muted-foreground">운영진 수</div>
+                        <div className="text-2xl font-bold text-foreground">
+                          {membersStats.adminCount}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          운영진 수
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1106,7 +1297,9 @@ export default function LeaguePage() {
               {/* Members List */}
               <div className="card-glass p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-foreground">멤버 목록</h2>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    멤버 목록
+                  </h2>
                 </div>
 
                 {/* Filters */}
@@ -1135,7 +1328,10 @@ export default function LeaguePage() {
                 {filteredMembers.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredMembers.map((member) => (
-                      <div key={member.id} className="p-4 bg-secondary/20 rounded-lg">
+                      <div
+                        key={member.id}
+                        className="p-4 bg-secondary/20 rounded-lg"
+                      >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-3 min-w-0 flex-1">
                             <Image
@@ -1146,10 +1342,12 @@ export default function LeaguePage() {
                               className="w-10 h-10 rounded-full flex-shrink-0"
                             />
                             <div className="min-w-0 flex-1">
-                              <h3 className="font-medium text-foreground truncate">{member.nickname}</h3>
+                              <h3 className="font-medium text-foreground truncate">
+                                {member.nickname}
+                              </h3>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-1">
                             <Button
                               variant="ghost"
@@ -1160,55 +1358,92 @@ export default function LeaguePage() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="flex-shrink-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>프로필 보기</DropdownMenuItem>
-                              {leagueSettings.user_role === "owner" && (
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger>역할 변경</DropdownMenuSubTrigger>
-                                  <DropdownMenuSubContent>
-                                    <DropdownMenuItem 
-                                      onClick={() => handleRoleChange(member.id, "admin")}
-                                      disabled={member.role === "owner"}
-                                    >
-                                      운영자
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                      onClick={() => handleRoleChange(member.id, "member")}
-                                      disabled={member.role === "owner"}
-                                    >
-                                      멤버
-                                    </DropdownMenuItem>
-                                  </DropdownMenuSubContent>
-                                </DropdownMenuSub>
-                              )}
-                              {(leagueSettings.user_role === "owner" || leagueSettings.user_role === "admin") && member.role !== "owner" && (
-                                <DropdownMenuItem 
-                                  className="text-red-500"
-                                  onClick={() => handleRemoveMember(member.id)}
+
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="flex-shrink-0"
                                 >
-                                  멤버 제거
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>프로필 보기</DropdownMenuItem>
+                                {leagueSettings.user_role === "owner" && (
+                                  <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                      역할 변경
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuSubContent>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleRoleChange(member.id, "admin")
+                                        }
+                                        disabled={member.role === "owner"}
+                                      >
+                                        운영자
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleRoleChange(member.id, "member")
+                                        }
+                                        disabled={member.role === "owner"}
+                                      >
+                                        멤버
+                                      </DropdownMenuItem>
+                                    </DropdownMenuSubContent>
+                                  </DropdownMenuSub>
+                                )}
+                                {(leagueSettings.user_role === "owner" ||
+                                  leagueSettings.user_role === "admin") &&
+                                  member.role !== "owner" && (
+                                    <DropdownMenuItem
+                                      className="text-red-500"
+                                      onClick={() =>
+                                        handleRemoveMember(member.id)
+                                      }
+                                    >
+                                      멤버 제거
+                                    </DropdownMenuItem>
+                                  )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <TierBadge tier={member.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
-                            <RoleBadge role={member.role.toLowerCase() as "owner" | "admin" | "member"} />
+                            <TierBadge
+                              tier={
+                                member.tier as
+                                  | "Challenger"
+                                  | "Grandmaster"
+                                  | "Master"
+                                  | "Diamond"
+                                  | "Emerald"
+                                  | "Platinum"
+                                  | "Gold"
+                                  | "Silver"
+                                  | "Bronze"
+                                  | "Iron"
+                                  | "Unranked"
+                              }
+                            />
+                            <RoleBadge
+                              role={
+                                member.role.toLowerCase() as
+                                  | "owner"
+                                  | "admin"
+                                  | "member"
+                              }
+                            />
                           </div>
                           <PositionTags positions={member.positions} />
                           <p className="text-xs text-muted-foreground">
-                            가입일: {new Date(member.joined_at).toLocaleDateString()}
+                            가입일:{" "}
+                            {new Date(member.joined_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -1217,7 +1452,9 @@ export default function LeaguePage() {
                 ) : (
                   <div className="text-center py-12">
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">멤버가 없습니다</h3>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      멤버가 없습니다
+                    </h3>
                     <p className="text-muted-foreground">필터를 조정해보세요</p>
                   </div>
                 )}
@@ -1225,7 +1462,7 @@ export default function LeaguePage() {
                 {/* 더보기 버튼 */}
                 {membersPagination?.hasMore && (
                   <div className="flex justify-center mt-6">
-                    <Button 
+                    <Button
                       onClick={loadMoreMembers}
                       disabled={membersLoading}
                       variant="outline"
@@ -1238,7 +1475,8 @@ export default function LeaguePage() {
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-2" />
-                          더보기 ({membersPagination.total - members.length}명 더)
+                          더보기 ({membersPagination.total - members.length}명
+                          더)
                         </>
                       )}
                     </Button>
@@ -1252,18 +1490,21 @@ export default function LeaguePage() {
             <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-foreground">매치 관리</h2>
+                <h2 className="text-2xl font-bold text-foreground">
+                  매치 관리
+                </h2>
                 <Button onClick={() => setShowCreateForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  새 매치 생성
+                  <Plus className="h-4 w-4 mr-2" />새 매치 생성
                 </Button>
               </div>
 
               {/* Create Match Form */}
               {showCreateForm && (
                 <div className="card-glass p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-4">새 매치 생성</h3>
-                  
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    새 매치 생성
+                  </h3>
+
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm font-medium text-foreground mb-2 block">
@@ -1275,7 +1516,7 @@ export default function LeaguePage() {
                         placeholder="매치 제목을 입력하세요"
                       />
                     </div>
-                    
+
                     <div className="flex space-x-4">
                       <Button
                         onClick={() => {
@@ -1287,7 +1528,9 @@ export default function LeaguePage() {
                       </Button>
                       {generatedCode && (
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm text-muted-foreground">매치 코드:</span>
+                          <span className="text-sm text-muted-foreground">
+                            매치 코드:
+                          </span>
                           <code className="px-2 py-1 bg-secondary rounded text-sm font-mono">
                             {generatedCode}
                           </code>
@@ -1295,11 +1538,9 @@ export default function LeaguePage() {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex space-x-2">
-                      <Button onClick={handleCreateMatch}>
-                        생성
-                      </Button>
+                      <Button onClick={handleCreateMatch}>생성</Button>
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -1336,43 +1577,66 @@ export default function LeaguePage() {
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
                               <StatusIcon className="h-5 w-5 text-primary" />
-                              <h3 className="text-lg font-medium text-foreground">{match.title}</h3>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(match.status)}`}>
+                              <h3 className="text-lg font-medium text-foreground">
+                                {match.title}
+                              </h3>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                                  match.status
+                                )}`}
+                              >
                                 {getStatusLabel(match.status)}
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
                               <span>생성자: {match.created_by}</span>
-                              <span>생성일: {new Date(match.created_at).toLocaleDateString()}</span>
+                              <span>
+                                생성일:{" "}
+                                {new Date(
+                                  match.created_at
+                                ).toLocaleDateString()}
+                              </span>
                             </div>
-                            
+
                             {match.description && (
-                              <p className="text-sm text-foreground mb-3">{match.description}</p>
+                              <p className="text-sm text-foreground mb-3">
+                                {match.description}
+                              </p>
                             )}
-                            
+
                             <div className="flex items-center space-x-4 text-sm">
                               <span className="text-muted-foreground">
-                                {match.status === "completed" && match.completed_at 
-                                  ? `완료일: ${new Date(match.completed_at).toLocaleDateString()}`
-                                  : "상태: 진행중"
-                                }
+                                {match.status === "completed" &&
+                                match.completed_at
+                                  ? `완료일: ${new Date(
+                                      match.completed_at
+                                    ).toLocaleDateString()}`
+                                  : "상태: 진행중"}
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="flex space-x-2">
-                            {match.code && <CopyButton text={match.code} size="sm" />}
+                            {match.code && (
+                              <CopyButton text={match.code} size="sm" />
+                            )}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem>상세 보기</DropdownMenuItem>
                                 <DropdownMenuItem>편집</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-500">삭제</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-500">
+                                  삭제
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -1384,9 +1648,15 @@ export default function LeaguePage() {
               ) : (
                 <div className="text-center py-12">
                   <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">매치가 없습니다</h3>
-                  <p className="text-muted-foreground">아직 생성된 매치가 없습니다</p>
-                  <p className="text-sm text-muted-foreground">첫 매치를 생성해보세요</p>
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    매치가 없습니다
+                  </h3>
+                  <p className="text-muted-foreground">
+                    아직 생성된 매치가 없습니다
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    첫 매치를 생성해보세요
+                  </p>
                 </div>
               )}
             </div>
@@ -1396,7 +1666,9 @@ export default function LeaguePage() {
             {leagueSettings.user_role === "owner" ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-foreground">리그 설정</h2>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    리그 설정
+                  </h2>
                   <Button onClick={handleSave} disabled={isSaving}>
                     {isSaving ? (
                       <>
@@ -1414,8 +1686,10 @@ export default function LeaguePage() {
 
                 {/* Basic Information */}
                 <div className="card-glass p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-4">기본 정보</h3>
-                  
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    기본 정보
+                  </h3>
+
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm font-medium text-foreground mb-2 block">
@@ -1423,17 +1697,27 @@ export default function LeaguePage() {
                       </label>
                       <Input
                         value={leagueSettings?.name || ""}
-                        onChange={(e) => setLeagueSettings(prev => prev ? {...prev, name: e.target.value} : null)}
+                        onChange={(e) =>
+                          setLeagueSettings((prev) =>
+                            prev ? { ...prev, name: e.target.value } : null
+                          )
+                        }
                       />
                     </div>
-                    
+
                     <div>
                       <label className="text-sm font-medium text-foreground mb-2 block">
                         설명
                       </label>
                       <Textarea
                         value={leagueSettings?.description || ""}
-                        onChange={(e) => setLeagueSettings(prev => prev ? {...prev, description: e.target.value} : null)}
+                        onChange={(e) =>
+                          setLeagueSettings((prev) =>
+                            prev
+                              ? { ...prev, description: e.target.value }
+                              : null
+                          )
+                        }
                         rows={3}
                       />
                     </div>
@@ -1442,13 +1726,20 @@ export default function LeaguePage() {
 
                 {/* Rules */}
                 <div className="card-glass p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-4">규칙</h3>
-                  
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    규칙
+                  </h3>
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       {rules.map((rule, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <span className="text-sm text-foreground flex-1">{rule}</span>
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <span className="text-sm text-foreground flex-1">
+                            {rule}
+                          </span>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1459,13 +1750,13 @@ export default function LeaguePage() {
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <Input
                         value={newRule}
                         onChange={(e) => setNewRule(e.target.value)}
                         placeholder="새 규칙을 입력하세요"
-                        onKeyPress={(e) => e.key === 'Enter' && addRule()}
+                        onKeyPress={(e) => e.key === "Enter" && addRule()}
                       />
                       <Button onClick={addRule} variant="outline">
                         추가
@@ -1477,58 +1768,91 @@ export default function LeaguePage() {
                 {/* Operating Team */}
                 <div className="card-glass p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-foreground">운영진</h3>
+                    <h3 className="text-xl font-bold text-foreground">
+                      운영진
+                    </h3>
                   </div>
-                  
+
                   <div className="space-y-3">
-                    {members.filter(member => ["owner", "admin"].includes(member.role)).map((admin) => (
-                      <div key={admin.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
-                        <Image
-                          src={admin.avatar_url || "/default-avatar.png"}
-                          alt={admin.nickname}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-foreground">{admin.nickname}</h4>
-                          <p className="text-sm text-muted-foreground">{admin.tier} • {admin.positions.join(", ")}</p>
+                    {members
+                      .filter((member) =>
+                        ["owner", "admin"].includes(member.role)
+                      )
+                      .map((admin) => (
+                        <div
+                          key={admin.id}
+                          className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg"
+                        >
+                          <Image
+                            src={admin.avatar_url || "/default-avatar.png"}
+                            alt={admin.nickname}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-foreground">
+                              {admin.nickname}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {admin.tier} • {admin.positions.join(", ")}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RoleBadge
+                              role={
+                                admin.role.toLowerCase() as
+                                  | "owner"
+                                  | "admin"
+                                  | "member"
+                              }
+                            />
+                            {admin.role === "admin" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handleTransferOwnership(admin.user_id)
+                                }
+                                className="text-orange-500 border-orange-500 hover:bg-orange-500/10"
+                              >
+                                <Crown className="h-4 w-4 mr-1" />
+                                책임자 위임
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RoleBadge role={admin.role.toLowerCase() as "owner" | "admin" | "member"} />
-                          {admin.role === "admin" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleTransferOwnership(parseInt(admin.id))}
-                              className="text-orange-500 border-orange-500 hover:bg-orange-500/10"
-                            >
-                              <Crown className="h-4 w-4 mr-1" />
-                              책임자 위임
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
 
                 {/* Owner Leave Section */}
                 <div className="card-glass p-6 border-orange-500/20">
-                  <h3 className="text-xl font-bold text-orange-500 mb-4">리그 탈퇴</h3>
-                  
+                  <h3 className="text-xl font-bold text-orange-500 mb-4">
+                    리그 탈퇴
+                  </h3>
+
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-orange-500/10 rounded-lg">
                       <div>
-                        <h4 className="font-medium text-foreground">책임자 탈퇴</h4>
+                        <h4 className="font-medium text-foreground">
+                          책임자 탈퇴
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          책임자는 먼저 다른 운영진에게 책임자를 위임한 후 탈퇴할 수 있습니다.
+                          책임자는 먼저 다른 운영진에게 책임자를 위임한 후
+                          탈퇴할 수 있습니다.
                         </p>
                       </div>
-                      
-                      <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+
+                      <AlertDialog
+                        open={showLeaveDialog}
+                        onOpenChange={setShowLeaveDialog}
+                      >
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-500/10">
+                          <Button
+                            variant="outline"
+                            className="text-orange-500 border-orange-500 hover:bg-orange-500/10"
+                          >
                             <LogOut className="h-4 w-4 mr-2" />
                             리그 탈퇴
                           </Button>
@@ -1540,12 +1864,16 @@ export default function LeaguePage() {
                               <span>책임자 탈퇴 확인</span>
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              책임자는 먼저 다른 운영진에게 책임자를 위임한 후 탈퇴할 수 있습니다.
-                              <br /><br />
+                              책임자는 먼저 다른 운영진에게 책임자를 위임한 후
+                              탈퇴할 수 있습니다.
+                              <br />
+                              <br />
                               <strong>탈퇴 조건:</strong>
                               <br />• 다른 운영진(admin)이 있어야 합니다
-                              <br />• 먼저 책임자를 다른 운영진에게 위임해야 합니다
-                              <br />• 위임 후에는 일반 운영진이 되어 탈퇴할 수 있습니다
+                              <br />• 먼저 책임자를 다른 운영진에게 위임해야
+                              합니다
+                              <br />• 위임 후에는 일반 운영진이 되어 탈퇴할 수
+                              있습니다
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -1555,7 +1883,8 @@ export default function LeaguePage() {
                                 setShowLeaveDialog(false);
                                 toast({
                                   title: "위임 필요",
-                                  description: "먼저 다른 운영진에게 책임자를 위임해주세요.",
+                                  description:
+                                    "먼저 다른 운영진에게 책임자를 위임해주세요.",
                                   variant: "destructive",
                                   duration: 5000,
                                 });
@@ -1573,17 +1902,21 @@ export default function LeaguePage() {
 
                 {/* Danger Zone */}
                 <div className="card-glass p-6 border-red-500/20">
-                  <h3 className="text-xl font-bold text-red-500 mb-4">위험 구역</h3>
-                  
+                  <h3 className="text-xl font-bold text-red-500 mb-4">
+                    위험 구역
+                  </h3>
+
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-red-500/10 rounded-lg">
                       <div>
-                        <h4 className="font-medium text-foreground">리그 삭제</h4>
+                        <h4 className="font-medium text-foreground">
+                          리그 삭제
+                        </h4>
                         <p className="text-sm text-muted-foreground">
                           리그를 삭제하면 모든 데이터가 영구적으로 삭제됩니다.
                         </p>
                       </div>
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive">
@@ -1598,8 +1931,9 @@ export default function LeaguePage() {
                               <span>리그 삭제 확인</span>
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              정말로 이 리그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며, 
-                              모든 멤버, 매치, 설정이 영구적으로 삭제됩니다.
+                              정말로 이 리그를 삭제하시겠습니까? 이 작업은
+                              되돌릴 수 없으며, 모든 멤버, 매치, 설정이
+                              영구적으로 삭제됩니다.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -1621,7 +1955,9 @@ export default function LeaguePage() {
               <div className="space-y-6">
                 <div className="text-center py-16">
                   <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <h3 className="text-2xl font-bold mb-2 text-muted-foreground">접근 권한이 없습니다</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-muted-foreground">
+                    접근 권한이 없습니다
+                  </h3>
                   <p className="text-muted-foreground mb-6">
                     리그 설정은 책임자(Owner)만 접근할 수 있습니다.
                   </p>
@@ -1631,22 +1967,34 @@ export default function LeaguePage() {
                 </div>
 
                 {/* 리그 탈퇴 섹션 (admin, member만) */}
-                {leagueSettings.user_role === "admin" || leagueSettings.user_role === "member" ? (
+                {leagueSettings.user_role === "admin" ||
+                leagueSettings.user_role === "member" ? (
                   <div className="card-glass p-6 border-orange-500/20">
-                    <h3 className="text-xl font-bold text-orange-500 mb-4">리그 탈퇴</h3>
-                    
+                    <h3 className="text-xl font-bold text-orange-500 mb-4">
+                      리그 탈퇴
+                    </h3>
+
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 bg-orange-500/10 rounded-lg">
                         <div>
-                          <h4 className="font-medium text-foreground">리그에서 탈퇴하기</h4>
+                          <h4 className="font-medium text-foreground">
+                            리그에서 탈퇴하기
+                          </h4>
                           <p className="text-sm text-muted-foreground">
-                            리그에서 탈퇴하면 더 이상 멤버가 아니며, 모든 권한이 제거됩니다.
+                            리그에서 탈퇴하면 더 이상 멤버가 아니며, 모든 권한이
+                            제거됩니다.
                           </p>
                         </div>
-                        
-                        <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+
+                        <AlertDialog
+                          open={showLeaveDialog}
+                          onOpenChange={setShowLeaveDialog}
+                        >
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-500/10">
+                            <Button
+                              variant="outline"
+                              className="text-orange-500 border-orange-500 hover:bg-orange-500/10"
+                            >
                               <LogOut className="h-4 w-4 mr-2" />
                               리그 탈퇴
                             </Button>
@@ -1659,7 +2007,8 @@ export default function LeaguePage() {
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 정말로 이 리그에서 탈퇴하시겠습니까?
-                                <br /><br />
+                                <br />
+                                <br />
                                 <strong>주의사항:</strong>
                                 <br />• 탈퇴 후에는 리그 멤버가 아닙니다
                                 <br />• 모든 권한과 접근이 제거됩니다
@@ -1694,7 +2043,10 @@ export default function LeaguePage() {
             )}
 
             {/* Ownership Transfer Confirmation Dialog */}
-            <AlertDialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+            <AlertDialog
+              open={showTransferDialog}
+              onOpenChange={setShowTransferDialog}
+            >
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center space-x-2">
@@ -1703,7 +2055,8 @@ export default function LeaguePage() {
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     정말로 이 운영진에게 책임자 권한을 위임하시겠습니까?
-                    <br /><br />
+                    <br />
+                    <br />
                     <strong>주의사항:</strong>
                     <br />• 위임 후에는 본인이 일반 운영진이 됩니다
                     <br />• 책임자 권한은 위임받은 운영진에게로 이전됩니다
@@ -1711,10 +2064,12 @@ export default function LeaguePage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => {
-                    setShowTransferDialog(false);
-                    setSelectedAdminId(null);
-                  }}>
+                  <AlertDialogCancel
+                    onClick={() => {
+                      setShowTransferDialog(false);
+                      setSelectedAdminId(null);
+                    }}
+                  >
                     취소
                   </AlertDialogCancel>
                   <AlertDialogAction
@@ -1770,16 +2125,36 @@ export default function LeaguePage() {
                 {/* 티어 및 포지션 */}
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">티어</h4>
-                    <TierBadge tier={selectedProfile.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                      티어
+                    </h4>
+                    <TierBadge
+                      tier={
+                        selectedProfile.tier as
+                          | "Challenger"
+                          | "Grandmaster"
+                          | "Master"
+                          | "Diamond"
+                          | "Emerald"
+                          | "Platinum"
+                          | "Gold"
+                          | "Silver"
+                          | "Bronze"
+                          | "Iron"
+                          | "Unranked"
+                      }
+                    />
                   </div>
-                  
-                  {selectedProfile.positions && selectedProfile.positions.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">포지션</h4>
-                      <PositionTags positions={selectedProfile.positions} />
-                    </div>
-                  )}
+
+                  {selectedProfile.positions &&
+                    selectedProfile.positions.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                          포지션
+                        </h4>
+                        <PositionTags positions={selectedProfile.positions} />
+                      </div>
+                    )}
                 </div>
 
                 {/* 통계 정보 */}
@@ -1788,25 +2163,34 @@ export default function LeaguePage() {
                     <div className="text-2xl font-bold text-foreground">
                       {selectedProfile.total_leagues}
                     </div>
-                    <div className="text-sm text-muted-foreground">참여 리그</div>
+                    <div className="text-sm text-muted-foreground">
+                      참여 리그
+                    </div>
                   </div>
                   <div className="text-center p-4 bg-secondary/20 rounded-lg">
                     <div className="text-2xl font-bold text-foreground">
                       {selectedProfile.total_matches}
                     </div>
-                    <div className="text-sm text-muted-foreground">생성 매치</div>
+                    <div className="text-sm text-muted-foreground">
+                      생성 매치
+                    </div>
                   </div>
                 </div>
 
                 {/* 가입일 */}
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">가입일</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                    가입일
+                  </h4>
                   <p className="text-foreground">
-                    {new Date(selectedProfile.joined_at).toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    {new Date(selectedProfile.joined_at).toLocaleDateString(
+                      "ko-KR",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
                   </p>
                 </div>
               </div>

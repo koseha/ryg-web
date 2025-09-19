@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
@@ -35,25 +41,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   // 프로필 데이터 가져오기
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+  const fetchUserProfile = useCallback(
+    async (userId: string) => {
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-      if (error) {
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return null;
+        }
+
+        return profile;
+      } catch (error) {
         console.error("Error fetching profile:", error);
         return null;
       }
-
-      return profile;
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      return null;
-    }
-  }, [supabase]);
+    },
+    [supabase]
+  );
 
   // 프로필 업데이트 함수
   const updateProfile = useCallback((updatedProfile: UserProfile) => {
@@ -77,15 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        
+
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
-          
+
           // 사용자가 있으면 프로필 데이터 가져오기 (비동기로 처리)
           if (session?.user) {
             setProfile(null); // 먼저 프로필을 null로 설정
-            fetchUserProfile(session.user.id).then(profileData => {
+            fetchUserProfile(session.user.id).then((profileData) => {
               if (mounted) {
                 setProfile(profileData);
               }
@@ -93,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             setProfile(null);
           }
-          
+
           setLoading(false);
         }
       } catch (error) {
@@ -113,11 +122,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // 사용자가 있으면 프로필 데이터 가져오기 (비동기로 처리)
         if (session?.user) {
           setProfile(null); // 먼저 프로필을 null로 설정
-          fetchUserProfile(session.user.id).then(profileData => {
+          fetchUserProfile(session.user.id).then((profileData) => {
             if (mounted) {
               setProfile(profileData);
             }
@@ -125,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setProfile(null);
         }
-        
+
         setLoading(false);
       }
     });

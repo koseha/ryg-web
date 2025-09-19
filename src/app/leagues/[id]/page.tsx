@@ -10,7 +10,6 @@ import {
   Calendar, 
   Trophy, 
   Play,
-  UserPlus,
   MoreVertical,
   Save,
   Trash2,
@@ -127,6 +126,14 @@ interface UserProfile {
   total_matches: number;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 
 const roleOptions = [
   { value: "all", label: "모든 역할" },
@@ -178,6 +185,9 @@ export default function LeaguePage() {
   const [error, setError] = useState<string | null>(null);
   const [leagueSettings, setLeagueSettings] = useState<LeagueSettings | null>(null);
   const [members, setMembers] = useState<LeagueMember[]>([]);
+  const [membersPagination, setMembersPagination] = useState<PaginationInfo | null>(null);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersStats, setMembersStats] = useState<{ totalMembers: number; adminCount: number } | null>(null);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [activities, setActivities] = useState<LeagueActivity[]>([]);
@@ -186,6 +196,12 @@ export default function LeaguePage() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+
+  // 필터 상태
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [tierFilter, setTierFilter] = useState("all");
+  const [positionFilter, setPositionFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // 데이터 로딩 함수들
   const fetchLeagueSettings = useCallback(async () => {
@@ -204,20 +220,59 @@ export default function LeaguePage() {
     }
   }, [leagueId]);
 
-  const fetchMembers = useCallback(async () => {
+  const fetchMembers = useCallback(async (page: number = 1, append: boolean = false, filters?: { role?: string, tier?: string, position?: string }) => {
     try {
-      const response = await fetch(`/api/leagues/${leagueId}/members`);
+      setMembersLoading(true);
+      
+      // 필터 파라미터 구성
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10'
+      });
+      
+      if (filters?.role && filters.role !== 'all') {
+        params.append('role', filters.role);
+      }
+      if (filters?.tier && filters.tier !== 'all') {
+        params.append('tier', filters.tier);
+      }
+      if (filters?.position && filters.position !== 'all') {
+        params.append('position', filters.position);
+      }
+      
+      const response = await fetch(`/api/leagues/${leagueId}/members?${params.toString()}`);
       const result = await response.json();
       
       if (result.success) {
-        setMembers(result.data);
+        if (append) {
+          // 기존 데이터에 추가
+          setMembers(prev => [...prev, ...result.data.members]);
+        } else {
+          // 새로 로드
+          setMembers(result.data.members);
+        }
+        setMembersPagination(result.data.pagination);
+        setMembersStats(result.data.stats);
       } else {
         console.error("Failed to fetch members:", result.error);
       }
     } catch (err) {
       console.error("Error fetching members:", err);
+    } finally {
+      setMembersLoading(false);
     }
   }, [leagueId]);
+
+  // 더보기 버튼 핸들러
+  const loadMoreMembers = useCallback(() => {
+    if (membersPagination?.hasMore && !membersLoading) {
+      fetchMembers(membersPagination.page + 1, true, {
+        role: roleFilter,
+        tier: tierFilter,
+        position: positionFilter
+      });
+    }
+  }, [membersPagination, membersLoading, fetchMembers, roleFilter, tierFilter, positionFilter]);
 
   const fetchJoinRequests = useCallback(async () => {
     try {
@@ -328,6 +383,17 @@ export default function LeaguePage() {
     }
   }, [leagueId]);
 
+  // 필터 변경 시 멤버 목록 다시 로드
+  useEffect(() => {
+    if (leagueId) {
+      fetchMembers(1, false, {
+        role: roleFilter,
+        tier: tierFilter,
+        position: positionFilter
+      });
+    }
+  }, [roleFilter, tierFilter, positionFilter, leagueId, fetchMembers]);
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case "Plus":
@@ -363,10 +429,6 @@ export default function LeaguePage() {
   };
   
   // State for different tabs
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [tierFilter, setTierFilter] = useState("all");
-  const [positionFilter, setPositionFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMatchTitle, setNewMatchTitle] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
@@ -377,27 +439,20 @@ export default function LeaguePage() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
 
-  // Filter functions - useMemo로 최적화
-  const filteredMembers = useMemo(() => {
-    return members.filter(member => {
-      const matchesRole = roleFilter === "all" || member.role === roleFilter;
-      const matchesTier = tierFilter === "all" || member.tier === tierFilter;
-      const matchesPosition = positionFilter === "all" || member.positions.includes(positionFilter);
-      return matchesRole && matchesTier && matchesPosition;
-    });
-  }, [members, roleFilter, tierFilter, positionFilter]);
+  // API에서 이미 필터링된 데이터를 사용하므로 별도 필터링 불필요
+  const filteredMembers = members;
 
   const filteredMatches = useMemo(() => {
     return matches
-      .filter(match => {
-        const matchesStatus = statusFilter === "all" || match.status === statusFilter;
-        return matchesStatus;
-      })
-      .sort((a, b) => {
-        // 상태별 정렬: 진행 중 > 완료
-        const statusOrder = { active: 0, completed: 1 };
-        return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
-      });
+    .filter(match => {
+      const matchesStatus = statusFilter === "all" || match.status === statusFilter;
+      return matchesStatus;
+    })
+    .sort((a, b) => {
+      // 상태별 정렬: 진행 중 > 완료
+      const statusOrder = { active: 0, completed: 1 };
+      return statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
+    });
   }, [matches, statusFilter]);
 
   // Helper functions
@@ -551,7 +606,7 @@ export default function LeaguePage() {
         duration: 5000,
       });
     } finally {
-      setIsSaving(false);
+    setIsSaving(false);
     }
   };
 
@@ -782,7 +837,7 @@ export default function LeaguePage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-glow break-words">
               {leagueSettings.name}
-            </h1>
+          </h1>
             <CopyButton 
               text={shareLink}
               className="self-start sm:self-center"
@@ -854,14 +909,14 @@ export default function LeaguePage() {
             <div>
               <h3 className="text-lg font-medium text-foreground mb-3">리그 규칙</h3>
               {leagueSettings.rules && leagueSettings.rules.length > 0 ? (
-                <ul className="space-y-2">
+              <ul className="space-y-2">
                   {leagueSettings.rules.map((rule, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-muted-foreground">
-                      <span className="text-primary mt-1">•</span>
-                      <span>{rule}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <li key={index} className="flex items-start space-x-2 text-muted-foreground">
+                    <span className="text-primary mt-1">•</span>
+                    <span>{rule}</span>
+                  </li>
+                ))}
+              </ul>
               ) : (
                 <p className="text-muted-foreground">설정된 규칙이 없습니다</p>
               )}
@@ -892,19 +947,19 @@ export default function LeaguePage() {
                 return (
                   <div key={activity.id} className="flex items-center space-x-3 p-3 bg-secondary/20 rounded-lg">
                     <div className={`w-2 h-2 ${color} rounded-full`}></div>
-                    <div className="flex-1">
+              <div className="flex-1">
                       <p className="text-foreground">{activity.title}</p>
                       <p className="text-sm text-muted-foreground">{activity.description}</p>
                       <p className="text-xs text-muted-foreground mt-1">{formatTimeAgo(activity.created_at)}</p>
-                    </div>
-                  </div>
+              </div>
+              </div>
                 );
               })
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">아직 활동이 없습니다</p>
                 <p className="text-sm text-muted-foreground mt-1">리그 활동이 시작되면 여기에 표시됩니다</p>
-              </div>
+                      </div>
             )}
           </div>
         </div>
@@ -957,24 +1012,24 @@ export default function LeaguePage() {
                               프로필 보기
                             </Button>
                             {leagueSettings.user_role === "owner" || leagueSettings.user_role === "admin" ? (
-                              <div className="flex gap-2">
+                            <div className="flex gap-2">
                                 <Button 
                                   size="sm" 
                                   variant="outline" 
                                   className="flex-1 sm:flex-none"
                                   onClick={() => handleJoinRequest(request.id, "approve")}
                                 >
-                                  승인
-                                </Button>
+                                승인
+                              </Button>
                                 <Button 
                                   size="sm" 
                                   variant="outline" 
                                   className="flex-1 sm:flex-none"
                                   onClick={() => handleJoinRequest(request.id, "reject")}
                                 >
-                                  거절
-                                </Button>
-                              </div>
+                                거절
+                              </Button>
+                            </div>
                             ) : null}
                           </div>
                         </div>
@@ -984,14 +1039,33 @@ export default function LeaguePage() {
                 </div>
               )}
 
+              {/* Members Stats */}
+              {membersStats && (
+                <div className="card-glass p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">멤버 현황</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3 p-4 bg-secondary/20 rounded-lg">
+                      <Users className="h-8 w-8 text-primary" />
+                      <div>
+                        <div className="text-2xl font-bold text-foreground">{membersStats.totalMembers}</div>
+                        <div className="text-sm text-muted-foreground">총 멤버 수</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-4 bg-secondary/20 rounded-lg">
+                      <Crown className="h-8 w-8 text-yellow-500" />
+                      <div>
+                        <div className="text-2xl font-bold text-foreground">{membersStats.adminCount}</div>
+                        <div className="text-sm text-muted-foreground">운영진 수</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Members List */}
               <div className="card-glass p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-foreground">멤버 목록</h2>
-                  <Button>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    멤버 초대
-                  </Button>
                 </div>
 
                 {/* Filters */}
@@ -1045,8 +1119,8 @@ export default function LeaguePage() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            
-                            <DropdownMenu>
+                          
+                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm" className="flex-shrink-0">
                                 <MoreVertical className="h-4 w-4" />
@@ -1082,7 +1156,7 @@ export default function LeaguePage() {
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
-                            </DropdownMenu>
+                          </DropdownMenu>
                           </div>
                         </div>
 
@@ -1104,6 +1178,29 @@ export default function LeaguePage() {
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-foreground mb-2">멤버가 없습니다</h3>
                     <p className="text-muted-foreground">필터를 조정해보세요</p>
+                  </div>
+                )}
+
+                {/* 더보기 버튼 */}
+                {membersPagination?.hasMore && (
+                  <div className="flex justify-center mt-6">
+                    <Button 
+                      onClick={loadMoreMembers}
+                      disabled={membersLoading}
+                      variant="outline"
+                    >
+                      {membersLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                          로딩 중...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          더보기 ({membersPagination.total - members.length}명 더)
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -1340,10 +1437,6 @@ export default function LeaguePage() {
                 <div className="card-glass p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-foreground">운영진</h3>
-                    <Button variant="outline" size="sm">
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      운영진 추가
-                    </Button>
                   </div>
                   
                   <div className="space-y-3">

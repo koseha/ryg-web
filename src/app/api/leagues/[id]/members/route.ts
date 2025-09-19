@@ -34,12 +34,51 @@ export async function GET(
       );
     }
 
-    // 멤버 목록 조회
-    const { data: members, error: membersError } = await supabase
+    // 페이지네이션 및 필터 파라미터
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    
+    // 필터 파라미터
+    const roleFilter = searchParams.get('role');
+    const tierFilter = searchParams.get('tier');
+    const positionFilter = searchParams.get('position');
+
+    // 멤버 목록 조회 (필터링 + 페이지네이션)
+    let membersQuery = supabase
       .from("league_members")
       .select("id, user_id, role, joined_at")
-      .eq("league_id", leagueId)
-      .order("joined_at", { ascending: false });
+      .eq("league_id", leagueId);
+
+    // role 필터 적용
+    if (roleFilter) {
+      membersQuery = membersQuery.eq("role", roleFilter);
+    }
+
+    const { data: members, error: membersError } = await membersQuery
+      .order("joined_at", { ascending: true }) // 가입일 순
+      .range(offset, offset + limit - 1);
+
+    // 필터링된 전체 멤버 수 조회
+    let countQuery = supabase
+      .from("league_members")
+      .select("*", { count: "exact", head: true })
+      .eq("league_id", leagueId);
+
+    if (roleFilter) {
+      countQuery = countQuery.eq("role", roleFilter);
+    }
+
+    const { count: totalCount, error: countError } = await countQuery;
+
+    if (countError) {
+      console.error("Error fetching member count:", countError);
+      return NextResponse.json(
+        { success: false, error: "멤버 수를 불러오는데 실패했습니다" },
+        { status: 500 }
+      );
+    }
 
     if (membersError) {
       console.error("Error fetching members:", membersError);
@@ -49,12 +88,19 @@ export async function GET(
       );
     }
 
-    // 프로필 정보 별도 조회
+    // 프로필 정보 별도 조회 (tier, position 필터링 포함)
     const userIds = members?.map(member => member.user_id) || [];
-    const { data: profiles, error: profilesError } = await supabase
+    let profilesQuery = supabase
       .from("profiles")
       .select("id, nickname, avatar_url, tier, positions")
       .in("id", userIds);
+
+    // tier 필터 적용
+    if (tierFilter) {
+      profilesQuery = profilesQuery.eq("tier", tierFilter);
+    }
+
+    const { data: profiles, error: profilesError } = await profilesQuery;
 
     if (profilesError) {
       console.error("Error fetching profiles:", profilesError);
@@ -64,9 +110,9 @@ export async function GET(
       );
     }
 
-    // 데이터 조합
+    // 데이터 조합 및 position 필터링
     const profileMap = new Map(profiles?.map(profile => [profile.id, profile]) || []);
-    const transformedMembers = members?.map(member => {
+    let transformedMembers = members?.map(member => {
       const profile = profileMap.get(member.user_id);
       return {
         id: member.id,
@@ -80,9 +126,47 @@ export async function GET(
       };
     }) || [];
 
+    // position 필터 적용 (클라이언트 사이드에서)
+    if (positionFilter) {
+      transformedMembers = transformedMembers.filter(member => 
+        member.positions.includes(positionFilter)
+      );
+    }
+
+    // 멤버 현황 정보 조회 (필터링 없이)
+    const { data: allMembers, error: allMembersError } = await supabase
+      .from("league_members")
+      .select("role")
+      .eq("league_id", leagueId);
+
+    if (allMembersError) {
+      console.error("Error fetching all members:", allMembersError);
+    }
+
+    // 현황 계산
+    const totalMembers = allMembers?.length || 0;
+    const adminCount = allMembers?.filter(member => ["owner", "admin"].includes(member.role)).length || 0;
+
+    // 페이지네이션 정보 계산
+    const totalPages = Math.ceil((totalCount || 0) / limit);
+    const hasMore = page < totalPages;
+
     return NextResponse.json({
       success: true,
-      data: transformedMembers,
+      data: {
+        members: transformedMembers,
+        pagination: {
+          page,
+          limit,
+          total: totalCount || 0,
+          totalPages,
+          hasMore
+        },
+        stats: {
+          totalMembers,
+          adminCount
+        }
+      }
     });
   } catch (error) {
     console.error("Error fetching members:", error);

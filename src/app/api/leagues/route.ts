@@ -260,15 +260,20 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
           owner = ownerProfile;
         }
 
+        // league_stats가 배열인지 객체인지 확인
+        const stats = Array.isArray(member.leagues?.league_stats) 
+          ? member.leagues?.league_stats[0] 
+          : member.leagues?.league_stats;
+
         return {
           id: member.leagues?.id,
           name: member.leagues?.name,
           description: member.leagues?.description,
           region: member.leagues?.region,
           type: member.leagues?.type,
-          member_count: member.leagues?.league_stats?.[0]?.member_count || 1,
-          match_count: member.leagues?.league_stats?.[0]?.match_count || 0,
-          last_matched_at: member.leagues?.league_stats?.[0]?.last_matched_at || null,
+          member_count: stats?.member_count || 1,
+          match_count: stats?.match_count || 0,
+          last_matched_at: stats?.last_matched_at || null,
           created_at: member.leagues?.created_at,
           updated_at: member.leagues?.updated_at,
           owner: owner ? {
@@ -296,6 +301,11 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
           owner = ownerProfile;
         }
 
+        // league_stats가 배열인지 객체인지 확인
+        const stats = Array.isArray(request.leagues?.league_stats) 
+          ? request.leagues?.league_stats[0] 
+          : request.leagues?.league_stats;
+
         return {
           id: request.id,
           league: {
@@ -304,9 +314,9 @@ async function getMyLeagues(request: NextRequest, supabase: Awaited<ReturnType<t
             description: request.leagues?.description,
             region: request.leagues?.region,
             type: request.leagues?.type,
-            member_count: request.leagues?.league_stats?.[0]?.member_count || 1,
-            match_count: request.leagues?.league_stats?.[0]?.match_count || 0,
-            last_matched_at: request.leagues?.league_stats?.[0]?.last_matched_at || null,
+            member_count: stats?.member_count || 1,
+            match_count: stats?.match_count || 0,
+            last_matched_at: stats?.last_matched_at || null,
             created_at: request.leagues?.created_at,
             updated_at: request.leagues?.updated_at,
             owner: owner ? {

@@ -116,6 +116,17 @@ interface LeagueActivity {
   created_at: string;
 }
 
+interface UserProfile {
+  id: string;
+  nickname: string;
+  avatar_url: string | null;
+  tier: string;
+  positions: string[];
+  joined_at: string;
+  total_leagues: number;
+  total_matches: number;
+}
+
 
 const roleOptions = [
   { value: "all", label: "모든 역할" },
@@ -170,6 +181,11 @@ export default function LeaguePage() {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [activities, setActivities] = useState<LeagueActivity[]>([]);
+  
+  // 프로필 모달 상태
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // 데이터 로딩 함수들
   const fetchLeagueSettings = useCallback(async () => {
@@ -237,7 +253,7 @@ export default function LeaguePage() {
     try {
       const response = await fetch(`/api/leagues/${leagueId}/activities`);
       const result = await response.json();
-      
+
       if (result.success) {
         setActivities(result.data);
       } else {
@@ -247,6 +263,37 @@ export default function LeaguePage() {
       console.error("Error fetching activities:", err);
     }
   }, [leagueId]);
+
+  // 프로필 조회 함수
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      setProfileLoading(true);
+      const response = await fetch(`/api/profiles/${userId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setSelectedProfile(result.data);
+        setShowProfileModal(true);
+      } else {
+        toast({
+          title: "프로필 조회 실패",
+          description: result.error,
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+      toast({
+        title: "오류 발생",
+        description: "프로필을 불러오는 중 오류가 발생했습니다",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [toast]);
 
   // 초기 데이터 로딩
   useEffect(() => {
@@ -899,7 +946,13 @@ export default function LeaguePage() {
                           </div>
                           
                           <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                            <Button size="sm" variant="outline" className="w-full sm:w-auto">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-full sm:w-auto"
+                              onClick={() => fetchUserProfile(request.user_id)}
+                              disabled={profileLoading}
+                            >
                               <Eye className="h-4 w-4 mr-1" />
                               프로필 보기
                             </Button>
@@ -982,7 +1035,18 @@ export default function LeaguePage() {
                             </div>
                           </div>
                           
-                          <DropdownMenu>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => fetchUserProfile(member.user_id)}
+                              disabled={profileLoading}
+                              className="flex-shrink-0"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            
+                            <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm" className="flex-shrink-0">
                                 <MoreVertical className="h-4 w-4" />
@@ -1018,7 +1082,8 @@ export default function LeaguePage() {
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
-                          </DropdownMenu>
+                            </DropdownMenu>
+                          </div>
                         </div>
 
                         <div className="space-y-2">
@@ -1412,6 +1477,103 @@ export default function LeaguePage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* 프로필 모달 */}
+      {showProfileModal && selectedProfile && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">프로필</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    setSelectedProfile(null);
+                  }}
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {/* 프로필 정보 */}
+              <div className="space-y-6">
+                {/* 아바타 및 기본 정보 */}
+                <div className="text-center">
+                  <Image
+                    src={selectedProfile.avatar_url || "/default-avatar.png"}
+                    alt={selectedProfile.nickname}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full mx-auto mb-4"
+                  />
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    {selectedProfile.nickname}
+                  </h3>
+                </div>
+
+                {/* 티어 및 포지션 */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">티어</h4>
+                    <TierBadge tier={selectedProfile.tier as "Challenger" | "Grandmaster" | "Master" | "Diamond" | "Emerald" | "Platinum" | "Gold" | "Silver" | "Bronze" | "Iron" | "Unranked"} />
+                  </div>
+                  
+                  {selectedProfile.positions && selectedProfile.positions.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">포지션</h4>
+                      <PositionTags positions={selectedProfile.positions} />
+                    </div>
+                  )}
+                </div>
+
+                {/* 통계 정보 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-secondary/20 rounded-lg">
+                    <div className="text-2xl font-bold text-foreground">
+                      {selectedProfile.total_leagues}
+                    </div>
+                    <div className="text-sm text-muted-foreground">참여 리그</div>
+                  </div>
+                  <div className="text-center p-4 bg-secondary/20 rounded-lg">
+                    <div className="text-2xl font-bold text-foreground">
+                      {selectedProfile.total_matches}
+                    </div>
+                    <div className="text-sm text-muted-foreground">생성 매치</div>
+                  </div>
+                </div>
+
+                {/* 가입일 */}
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">가입일</h4>
+                  <p className="text-foreground">
+                    {new Date(selectedProfile.joined_at).toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <Button
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    setSelectedProfile(null);
+                  }}
+                  className="w-full"
+                >
+                  닫기
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

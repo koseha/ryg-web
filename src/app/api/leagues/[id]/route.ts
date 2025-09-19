@@ -37,19 +37,9 @@ export async function GET(
       );
     }
 
-    // 리그 소유자 정보 조회
-    let owner = null;
-    if (league.owner_id) {
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("id, nickname, avatar_url, tier, positions")
-        .eq("id", league.owner_id)
-        .single();
-      owner = ownerProfile;
-    }
 
-    // 리그 멤버 정보 조회 (최근 가입한 순으로)
-    const { data: members, error: membersError } = await supabase
+    // 리그 운영진 정보 조회 (owner, admin만)
+    const { data: admins, error: adminsError } = await supabase
       .from("league_members")
       .select(`
         id,
@@ -58,16 +48,16 @@ export async function GET(
         joined_at
       `)
       .eq("league_id", leagueId)
-      .order("joined_at", { ascending: false })
-      .limit(10);
+      .in("role", ["owner", "admin"])
+      .order("role", { ascending: true }); // owner가 먼저, admin이 나중에
 
-    if (membersError) {
-      console.error("Error fetching members:", membersError);
+    if (adminsError) {
+      console.error("Error fetching admins:", adminsError);
     }
 
-    // 멤버별 프로필 정보 조회
-    const recentMembers = await Promise.all(
-      members?.map(async (member) => {
+    // 운영진별 프로필 정보 조회
+    const adminMembers = await Promise.all(
+      admins?.map(async (member) => {
         const { data: profile } = await supabase
           .from("profiles")
           .select("id, nickname, avatar_url, tier, positions")
@@ -117,6 +107,9 @@ export async function GET(
       }
     }
 
+    // owner 정보를 adminMembers에서 찾기
+    const ownerMember = adminMembers.find(member => member.role === 'owner');
+
     // 데이터 변환
     const transformedData = {
       id: league.id,
@@ -129,19 +122,19 @@ export async function GET(
       created_at: league.created_at,
       updated_at: league.updated_at,
       owner_id: league.owner_id,
-      owner: owner ? {
-        id: owner.id,
-        nickname: owner.nickname,
-        avatar_url: owner.avatar_url,
-        tier: owner.tier,
-        positions: owner.positions,
+      owner: ownerMember ? {
+        id: ownerMember.user_id,
+        nickname: ownerMember.nickname,
+        avatar_url: ownerMember.avatar_url,
+        tier: ownerMember.tier,
+        positions: ownerMember.positions,
       } : null,
       region: league.region,
       type: league.type,
       accepting: league.accepting,
       user_join_request: userJoinRequest,
       user_membership: userMembership,
-      recent_members: recentMembers,
+      admin_members: adminMembers,
     };
 
     return NextResponse.json({

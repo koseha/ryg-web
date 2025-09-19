@@ -57,7 +57,7 @@ interface LeagueDetails {
     role: string;
     joined_at: string;
   } | null;
-  recent_members: Array<{
+  admin_members: Array<{
     id: string;
     user_id: string;
     nickname: string;
@@ -126,22 +126,6 @@ export default function LeagueDetail() {
     fetchLeagueData();
   }, [fetchLeagueData]);
 
-  // 페이지 포커스 시 상태 재확인 (5분마다만)
-  useEffect(() => {
-    let lastFetchTime = 0;
-    const FETCH_INTERVAL = 5 * 60 * 1000; // 5분
-
-    const handleFocus = () => {
-      const now = Date.now();
-      if (params?.id && leagueData && (now - lastFetchTime) > FETCH_INTERVAL) {
-        lastFetchTime = now;
-        fetchLeagueData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [params?.id, leagueData, fetchLeagueData]);
 
   // Handle join form submission
   const handleJoinSubmit = async () => {
@@ -410,7 +394,7 @@ export default function LeagueDetail() {
           <h3 className="text-xl font-bold text-foreground mb-4">운영진</h3>
 
           <div className="space-y-4">
-            {leagueData.recent_members.map((member) => (
+            {leagueData.admin_members.map((member) => (
               <div
                 key={member.id}
                 className="flex items-center space-x-4 p-4 bg-secondary/20 rounded-lg"
@@ -453,7 +437,7 @@ export default function LeagueDetail() {
                 </div>
               </div>
             ))}
-            {leagueData.recent_members.length === 0 && (
+            {leagueData.admin_members.length === 0 && (
               <p className="text-muted-foreground text-center py-4">
                 운영진 정보가 없습니다.
               </p>

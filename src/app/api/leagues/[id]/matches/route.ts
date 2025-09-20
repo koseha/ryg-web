@@ -11,7 +11,10 @@ export async function GET(
     const { id: leagueId } = await params;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },
@@ -34,15 +37,32 @@ export async function GET(
       );
     }
 
-    // 매치 목록 조회
-    const { data: matches, error: matchesError } = await supabase
-      .from("matches")
-      .select("id, title, description, status, riot_tournament_code, created_at, completed_at, created_by")
+    // 매치 목록 조회 (league_matches와 matches 조인)
+    const { data: leagueMatches, error: leagueMatchesError } = await supabase
+      .from("league_matches")
+      .select(`
+        id,
+        title,
+        description,
+        created_at,
+        created_by,
+        matches!inner(
+          id,
+          status,
+          riot_tournament_code,
+          match_duration,
+          game_version,
+          winner,
+          completed_at,
+          created_at,
+          updated_at
+        )
+      `)
       .eq("league_id", leagueId)
       .order("created_at", { ascending: false });
 
-    if (matchesError) {
-      console.error("Error fetching matches:", matchesError);
+    if (leagueMatchesError) {
+      console.error("Error fetching league matches:", leagueMatchesError);
       return NextResponse.json(
         { success: false, error: "매치 목록을 불러오는데 실패했습니다" },
         { status: 500 }
@@ -50,7 +70,8 @@ export async function GET(
     }
 
     // 생성자 프로필 정보 별도 조회
-    const creatorIds = matches?.map(match => match.created_by).filter(Boolean) || [];
+    const creatorIds =
+      leagueMatches?.map((lm) => lm.created_by).filter(Boolean) || [];
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, nickname")
@@ -65,20 +86,28 @@ export async function GET(
     }
 
     // 데이터 조합
-    const profileMap = new Map(profiles?.map(profile => [profile.id, profile]) || []);
-    const transformedMatches = matches?.map(match => {
-      const profile = profileMap.get(match.created_by);
-      return {
-        id: match.id,
-        title: match.title,
-        description: match.description,
-        status: match.status,
-        code: match.riot_tournament_code,
-        created_at: match.created_at,
-        completed_at: match.completed_at,
-        created_by: profile?.nickname || "알 수 없음",
-      };
-    }) || [];
+    const profileMap = new Map(
+      profiles?.map((profile) => [profile.id, profile]) || []
+    );
+    const transformedMatches =
+      leagueMatches?.map((leagueMatch) => {
+        const profile = profileMap.get(leagueMatch.created_by);
+        const match = Array.isArray(leagueMatch.matches) ? leagueMatch.matches[0] : leagueMatch.matches;
+        return {
+          id: leagueMatch.id, // league_matches의 id
+          match_id: match?.id, // matches의 id
+          title: leagueMatch.title,
+          description: leagueMatch.description,
+          status: match?.status,
+          code: match?.riot_tournament_code,
+          match_duration: match?.match_duration,
+          game_version: match?.game_version,
+          winner: match?.winner,
+          created_at: leagueMatch.created_at,
+          completed_at: match?.completed_at,
+          created_by: profile?.nickname || "알 수 없음",
+        };
+      }) || [];
 
     return NextResponse.json({
       success: true,
@@ -105,7 +134,10 @@ export async function POST(
     const { title, description, riot_tournament_code } = body;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },
@@ -128,31 +160,59 @@ export async function POST(
       );
     }
 
-    // 매치 생성
-    const { data: newMatch, error: insertError } = await supabase
+    // 1. matches 테이블에 매치 생성
+    const { data: newMatch, error: matchInsertError } = await supabase
       .from("matches")
       .insert({
-        league_id: leagueId,
-        title,
-        description,
         riot_tournament_code,
-        created_by: user.id,
-        status: "active",
+        status: "planned",
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error("Error creating match:", insertError);
+    if (matchInsertError) {
+      console.error("Error creating match:", matchInsertError);
       return NextResponse.json(
         { success: false, error: "매치 생성에 실패했습니다" },
         { status: 500 }
       );
     }
 
+    // 2. league_matches 테이블에 리그-매치 연결 생성
+    const { data: newLeagueMatch, error: leagueMatchInsertError } = await supabase
+      .from("league_matches")
+      .insert({
+        league_id: leagueId,
+        match_id: newMatch.id,
+        title,
+        description,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (leagueMatchInsertError) {
+      // 매치 생성 실패 시 롤백
+      await supabase.from("matches").delete().eq("id", newMatch.id);
+      console.error("Error creating league match:", leagueMatchInsertError);
+      return NextResponse.json(
+        { success: false, error: "리그 매치 생성에 실패했습니다" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      data: newMatch,
+      data: {
+        id: newLeagueMatch.id,
+        match_id: newMatch.id,
+        title: newLeagueMatch.title,
+        description: newLeagueMatch.description,
+        status: newMatch.status,
+        code: newMatch.riot_tournament_code,
+        created_at: newLeagueMatch.created_at,
+        created_by: user.id,
+      },
       message: "매치가 생성되었습니다",
     });
   } catch (error) {

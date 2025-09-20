@@ -135,7 +135,7 @@ export async function POST(
     const supabase = await createClient();
     const { id: leagueId } = await params;
     const body = await request.json();
-    const { title, description, riot_tournament_code } = body;
+    const { title, description, region } = body;
 
     // 인증 확인
     const {
@@ -164,61 +164,45 @@ export async function POST(
       );
     }
 
-    // 1. matches 테이블에 매치 생성
-    const { data: newMatch, error: matchInsertError } = await supabase
-      .from("matches")
-      .insert({
-        riot_tournament_code,
-        status: "planned",
-      })
-      .select()
-      .single();
+    // Edge Function 호출하여 매치 생성 (Riot API 연동)
+    const { data, error } = await supabase.functions.invoke("create-match", {
+      body: {
+        leagueId,
+        title,
+        description: description || null,
+        region: region || "NA",
+        userId: user.id,
+      },
+    });
 
-    if (matchInsertError) {
-      console.error("Error creating match:", matchInsertError);
+    if (error) {
+      console.error("Edge Function Error:", error);
       return NextResponse.json(
-        { success: false, error: "매치 생성에 실패했습니다" },
+        { success: false, error: error.message },
         { status: 500 }
       );
     }
 
-    // 2. league_matches 테이블에 리그-매치 연결 생성
-    const { data: newLeagueMatch, error: leagueMatchInsertError } =
-      await supabase
-        .from("league_matches")
-        .insert({
-          league_id: leagueId,
-          match_id: newMatch.id,
-          title,
-          description,
-          created_by: user.id,
-        })
-        .select()
-        .single();
-
-    if (leagueMatchInsertError) {
-      // 매치 생성 실패 시 롤백
-      await supabase.from("matches").delete().eq("id", newMatch.id);
-      console.error("Error creating league match:", leagueMatchInsertError);
+    if (!data.success) {
       return NextResponse.json(
-        { success: false, error: "리그 매치 생성에 실패했습니다" },
-        { status: 500 }
+        { success: false, error: data.error },
+        { status: 400 }
       );
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        id: newLeagueMatch.id,
-        match_id: newMatch.id,
-        title: newLeagueMatch.title,
-        description: newLeagueMatch.description,
-        status: newMatch.status,
-        code: newMatch.riot_tournament_code,
-        created_at: newLeagueMatch.created_at,
+        id: data.data.leagueMatchId,
+        match_id: data.data.matchId,
+        title,
+        description: description || null,
+        status: "planned",
+        code: data.data.tournamentCode,
+        created_at: new Date().toISOString(),
         created_by: user.id,
       },
-      message: "매치가 생성되었습니다",
+      message: "매치가 성공적으로 생성되었습니다",
     });
   } catch (error) {
     console.error("Error creating match:", error);

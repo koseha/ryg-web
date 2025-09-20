@@ -18,6 +18,7 @@ import {
   Target,
   Eye,
   LogOut,
+  Loader2,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -459,7 +460,8 @@ export default function LeaguePage() {
   // State for different tabs
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMatchTitle, setNewMatchTitle] = useState("");
-  const [generatedCode, setGeneratedCode] = useState("");
+  const [newMatchDescription, setNewMatchDescription] = useState("");
+  const [isCreatingMatch, setIsCreatingMatch] = useState(false);
   const [rules, setRules] = useState<string[]>([]);
   const [newRule, setNewRule] = useState("");
   const [shareLink, setShareLink] = useState("");
@@ -490,16 +492,6 @@ export default function LeaguePage() {
   }, [matches, statusFilter]);
 
   // Helper functions
-  const generateMatchCode = () => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 6; i++) {
-      result += characters.charAt(
-        Math.floor(Math.random() * characters.length)
-      );
-    }
-    return result;
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -514,8 +506,8 @@ export default function LeaguePage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "active":
-        return "진행중";
+      case "planned":
+        return "생성됨";
       case "completed":
         return "완료";
       default:
@@ -556,6 +548,8 @@ export default function LeaguePage() {
       return;
     }
 
+    setIsCreatingMatch(true);
+
     try {
       const response = await fetch(`/api/leagues/${leagueId}/matches`, {
         method: "POST",
@@ -564,8 +558,8 @@ export default function LeaguePage() {
         },
         body: JSON.stringify({
           title: newMatchTitle,
-          description: null,
-          riot_tournament_code: generatedCode || null,
+          description: newMatchDescription || null,
+          region: "NA",
         }),
       });
 
@@ -579,7 +573,7 @@ export default function LeaguePage() {
         });
         setShowCreateForm(false);
         setNewMatchTitle("");
-        setGeneratedCode("");
+        setNewMatchDescription("");
         fetchMatches(); // 매치 목록 새로고침
       } else {
         toast({
@@ -596,6 +590,8 @@ export default function LeaguePage() {
         variant: "destructive",
         duration: 5000,
       });
+    } finally {
+      setIsCreatingMatch(false);
     }
   };
 
@@ -1501,9 +1497,30 @@ export default function LeaguePage() {
               {/* Create Match Form */}
               {showCreateForm && (
                 <div className="card-glass p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    새 매치 생성
-                  </h3>
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-foreground mb-2">
+                      새 매치 생성
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      1. 매치 생성 시 Riot API를 통해 토너먼트 코드가 자동으로
+                      발급됩니다.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      2. 생성 후 일주일 내에 경기가 진행되지 않으면 매치가
+                      자동으로 삭제됩니다.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      3. 코드를 참가자들에게 공유하여 게임을 진행해주세요.
+                    </p>
+                    {isCreatingMatch && (
+                      <div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>
+                          Riot API를 통해 토너먼트 코드를 생성하고 있습니다...
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="space-y-4">
                     <div>
@@ -1514,40 +1531,44 @@ export default function LeaguePage() {
                         value={newMatchTitle}
                         onChange={(e) => setNewMatchTitle(e.target.value)}
                         placeholder="매치 제목을 입력하세요"
+                        disabled={isCreatingMatch}
                       />
                     </div>
 
-                    <div className="flex space-x-4">
-                      <Button
-                        onClick={() => {
-                          setGeneratedCode(generateMatchCode());
-                        }}
-                        variant="outline"
-                      >
-                        코드 생성
-                      </Button>
-                      {generatedCode && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-muted-foreground">
-                            매치 코드:
-                          </span>
-                          <code className="px-2 py-1 bg-secondary rounded text-sm font-mono">
-                            {generatedCode}
-                          </code>
-                          <CopyButton text={generatedCode} />
-                        </div>
-                      )}
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        매치 설명 (선택사항)
+                      </label>
+                      <Input
+                        value={newMatchDescription}
+                        onChange={(e) => setNewMatchDescription(e.target.value)}
+                        placeholder="매치 설명을 입력하세요"
+                        disabled={isCreatingMatch}
+                      />
                     </div>
 
                     <div className="flex space-x-2">
-                      <Button onClick={handleCreateMatch}>생성</Button>
+                      <Button
+                        onClick={handleCreateMatch}
+                        disabled={isCreatingMatch}
+                      >
+                        {isCreatingMatch ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            생성 중...
+                          </>
+                        ) : (
+                          "매치 생성"
+                        )}
+                      </Button>
                       <Button
                         variant="outline"
                         onClick={() => {
                           setShowCreateForm(false);
                           setNewMatchTitle("");
-                          setGeneratedCode("");
+                          setNewMatchDescription("");
                         }}
+                        disabled={isCreatingMatch}
                       >
                         취소
                       </Button>
@@ -1612,7 +1633,7 @@ export default function LeaguePage() {
                                   ? `완료일: ${new Date(
                                       match.completed_at
                                     ).toLocaleDateString()}`
-                                  : "상태: 진행중"}
+                                  : "상태: 생성됨"}
                               </span>
                             </div>
                           </div>

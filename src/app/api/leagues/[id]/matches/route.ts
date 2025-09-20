@@ -40,7 +40,8 @@ export async function GET(
     // 매치 목록 조회 (league_matches와 matches 조인)
     const { data: leagueMatches, error: leagueMatchesError } = await supabase
       .from("league_matches")
-      .select(`
+      .select(
+        `
         id,
         title,
         description,
@@ -57,7 +58,8 @@ export async function GET(
           created_at,
           updated_at
         )
-      `)
+      `
+      )
       .eq("league_id", leagueId)
       .order("created_at", { ascending: false });
 
@@ -92,7 +94,9 @@ export async function GET(
     const transformedMatches =
       leagueMatches?.map((leagueMatch) => {
         const profile = profileMap.get(leagueMatch.created_by);
-        const match = Array.isArray(leagueMatch.matches) ? leagueMatch.matches[0] : leagueMatch.matches;
+        const match = Array.isArray(leagueMatch.matches)
+          ? leagueMatch.matches[0]
+          : leagueMatch.matches;
         return {
           id: leagueMatch.id, // league_matches의 id
           match_id: match?.id, // matches의 id
@@ -179,17 +183,18 @@ export async function POST(
     }
 
     // 2. league_matches 테이블에 리그-매치 연결 생성
-    const { data: newLeagueMatch, error: leagueMatchInsertError } = await supabase
-      .from("league_matches")
-      .insert({
-        league_id: leagueId,
-        match_id: newMatch.id,
-        title,
-        description,
-        created_by: user.id,
-      })
-      .select()
-      .single();
+    const { data: newLeagueMatch, error: leagueMatchInsertError } =
+      await supabase
+        .from("league_matches")
+        .insert({
+          league_id: leagueId,
+          match_id: newMatch.id,
+          title,
+          description,
+          created_by: user.id,
+        })
+        .select()
+        .single();
 
     if (leagueMatchInsertError) {
       // 매치 생성 실패 시 롤백

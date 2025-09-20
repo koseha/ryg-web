@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const leagueId = searchParams.get("leagueId");
     const status = searchParams.get("status");
 
-    let query = supabase.from("matches").select("*");
+    let query = supabase.from("matches").select("*").is("deleted_at", null);
 
     // Filter by league ID
     if (leagueId) {

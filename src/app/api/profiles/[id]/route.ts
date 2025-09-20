@@ -11,7 +11,10 @@ export async function GET(
     const { id: userId } = await params;
 
     // 인증 확인
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다" },
@@ -22,14 +25,16 @@ export async function GET(
     // 프로필 정보 조회 (제한된 정보만)
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select(`
+      .select(
+        `
         id,
         nickname,
         avatar_url,
         tier,
         positions,
         created_at
-      `)
+      `
+      )
       .eq("id", userId)
       .single();
 
@@ -47,12 +52,13 @@ export async function GET(
         .from("league_members")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId),
-      
+
       // 생성한 매치 수
       supabase
         .from("matches")
         .select("*", { count: "exact", head: true })
         .eq("created_by", userId)
+        .is("deleted_at", null),
     ]);
 
     const totalLeagues = leaguesResult.count || 0;

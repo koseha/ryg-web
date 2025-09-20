@@ -315,7 +315,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-
 // 사용자 통계 조회 함수
 async function getUserStats(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -336,7 +335,8 @@ async function getUserStats(
     const { count: totalMatches, error: matchesError } = await supabase
       .from("matches")
       .select("*", { count: "exact", head: true })
-      .eq("created_by", userId);
+      .eq("created_by", userId)
+      .is("deleted_at", null);
 
     if (matchesError) {
       console.error("Error fetching matches count:", matchesError);

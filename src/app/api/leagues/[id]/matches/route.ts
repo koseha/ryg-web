@@ -61,6 +61,7 @@ export async function GET(
       `
       )
       .eq("league_id", leagueId)
+      .is("matches.deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (leagueMatchesError) {

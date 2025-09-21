@@ -31,7 +31,7 @@ export default function AuthCallback() {
             }
 
             if (sessionData.session) {
-              router.push("/");
+              router.push("/profile");
             } else {
               console.error("No session found after OAuth callback");
               router.push("/?error=no_session");

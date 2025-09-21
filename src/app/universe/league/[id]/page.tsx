@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Crown,
   Users,
@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface LeagueDetails {
@@ -83,7 +84,9 @@ const regionDescriptions = {
 
 export default function LeagueDetail() {
   const params = useParams();
+  const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [leagueData, setLeagueData] = useState<LeagueDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,6 +231,16 @@ export default function LeagueDetail() {
   };
 
   const getJoinButtonState = () => {
+    // 로그인하지 않은 사용자인 경우
+    if (!user) {
+      return {
+        text: "로그인 후 신청하기",
+        disabled: false,
+        variant: "outline" as const,
+        icon: <UserPlus className="mr-2 h-4 w-4" />
+      };
+    }
+
     // 이미 가입된 멤버인 경우
     if (leagueData?.user_membership) {
       return {
@@ -353,6 +366,11 @@ export default function LeagueDetail() {
                     variant={buttonState.variant}
                     size="lg"
                     onClick={() => {
+                      if (!user) {
+                        // 로그인하지 않은 사용자는 로그인 페이지로 이동
+                        router.push('/login');
+                        return;
+                      }
                       if (!leagueData?.user_membership) {
                         setShowJoinForm(true);
                       }

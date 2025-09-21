@@ -12,10 +12,10 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // 이미 로그인된 사용자는 홈으로 리다이렉트
+  // 이미 로그인된 사용자는 프로필로 리다이렉트
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push("/profile");
     }
   }, [user, loading, router]);
 

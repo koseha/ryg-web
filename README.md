@@ -7,6 +7,7 @@
 - **Next.js 15** - React 프레임워크 (App Router)
 - **TypeScript** - 타입 안전성
 - **Tailwind CSS** - 스타일링
+- **Supabase** - 백엔드 서비스 (인증, 데이터베이스)
 - **shadcn/ui** - UI 컴포넌트 라이브러리
 - **Radix UI** - 접근성 기반 UI 프리미티브
 - **Lucide React** - 아이콘 라이브러리
@@ -31,12 +32,21 @@
 
 - 사용자 리그 대시보드
 - 역할별 권한 표시 (Owner, Admin, Member)
-- 통계 카드 (활성 리그, 총 멤버, 최근 매치)
-- 빠른 액션 버튼
+- 리그 생성 모달
+- 가입 신청 대기 중인 리그 관리
+- 신청 취소 기능
+
+### 🔐 인증 시스템
+
+- Google OAuth 로그인
+- Supabase Auth 통합
+- 세션 관리
+- 프로필 관리
 
 ### 🔧 API Routes
 
-- `/api/leagues` - 리그 CRUD 작업
+- `/api/leagues` - 리그 CRUD 작업 (검색, 필터링, 페이지네이션)
+- `/api/leagues/[id]` - 특정 리그 상세 정보
 - `/api/matches` - 매치 관리
 
 ## 🎨 디자인 시스템
@@ -91,40 +101,38 @@ npm run lint
 src/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API Routes
-│   │   ├── auth/          # 인증 API
 │   │   ├── leagues/       # 리그 API
-│   │   └── matches/       # 매치 API
+│   │   ├── matches/       # 매치 API
+│   │   └── profiles/      # 프로필 API
+│   ├── auth/              # 인증 페이지
 │   ├── universe/          # Universe 페이지
 │   ├── leagues/           # My Leagues 페이지
+│   ├── profile/           # 프로필 페이지
 │   ├── globals.css        # 글로벌 스타일
 │   ├── layout.tsx         # 루트 레이아웃
 │   └── page.tsx           # 홈페이지
 ├── components/            # React 컴포넌트
 │   ├── Layout/           # 레이아웃 컴포넌트
-│   └── ui/               # UI 컴포넌트
+│   ├── auth/             # 인증 컴포넌트
+│   └── ui/               # UI 컴포넌트 (shadcn/ui)
+├── contexts/             # React Context
+├── hooks/                # 커스텀 훅
 ├── lib/                  # 유틸리티 함수
+│   └── supabase/         # Supabase 클라이언트 설정
 └── assets/               # 정적 자산
 ```
 
-## 🔄 Vite에서 Next.js로 마이그레이션
+## 🛠️ 환경 설정
 
-이 프로젝트는 원래 Vite + React 프로젝트에서 Next.js로 마이그레이션되었습니다.
+### 환경 변수
 
-### 주요 변경사항
+프로젝트를 실행하기 위해 다음 환경 변수들을 설정해야 합니다:
 
-1. **라우팅**: React Router → Next.js App Router
-2. **페이지 구조**: `src/pages/` → `src/app/`
-3. **이미지 처리**: 일반 img 태그 → Next.js Image 컴포넌트
-4. **클라이언트 컴포넌트**: `"use client"` 지시어 추가
-5. **API**: 별도 백엔드 → Next.js API Routes
-
-### 마이그레이션 장점
-
-- **SSR/SSG** - SEO 최적화 및 성능 향상
-- **API Routes** - 백엔드 API 개발 가능
-- **파일 기반 라우팅** - 더 직관적인 라우팅
-- **자동 최적화** - 이미지, 폰트, 번들 최적화
-- **App Router** - 최신 Next.js 13+ 기능
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
 ## 🚀 배포
 
@@ -138,25 +146,8 @@ npm i -g vercel
 vercel
 ```
 
-### 기타 플랫폼
-
-- Netlify
-- AWS Amplify
-- Railway
-- Render
+환경 변수를 Vercel 대시보드에서 설정해주세요.
 
 ## 📝 라이선스
 
 MIT License
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📞 연락처
-
-프로젝트 링크: [https://github.com/your-username/ryg-web](https://github.com/your-username/ryg-web)

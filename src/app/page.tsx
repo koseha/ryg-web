@@ -89,7 +89,7 @@ function HomeContent() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100vh]">
       {/* Error Message */}
       {errorMessage && (
         <div className="fixed top-4 left-4 right-4 z-50">
@@ -101,7 +101,7 @@ function HomeContent() {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-8 md:py-20 px-3 md:px-4 overflow-hidden min-h-[70vh] md:min-h-[80vh] flex items-center">
+      <section className="relative py-12 md:py-20 px-3 md:px-4 overflow-hidden flex items-center">
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95"></div>
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"

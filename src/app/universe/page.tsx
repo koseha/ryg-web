@@ -188,7 +188,7 @@ export default function Universe() {
   };
 
   return (
-    <div className="min-h-screen py-4 md:py-8 px-3 md:px-4">
+    <div className="min-h-[100vh] py-4 md:py-8 px-3 md:px-4">
       <div className="container mx-auto">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
@@ -257,7 +257,7 @@ export default function Universe() {
             {leagues.map((league, index) => (
               <div
                 key={league.id}
-                className="card-feature group animate-fade-in flex flex-col min-h-[280px] md:min-h-[320px]"
+                className="card-feature group animate-fade-in flex flex-col"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Header */}
@@ -298,15 +298,15 @@ export default function Universe() {
                   {league.name}
                 </h3>
 
-                {/* Description - Fixed height */}
+                {/* Description */}
                 <div className="flex-1 mb-3">
-                  <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed h-[40px]">
+                  <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                     {league.description}
                   </p>
                 </div>
 
-                {/* Stats - Fixed height */}
-                <div className="space-y-2 mb-4 h-[60px]">
+                {/* Stats */}
+                <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />

@@ -250,7 +250,7 @@ export default function MyLeagues() {
   }
 
   return (
-    <div className="min-h-screen py-4 md:py-8 px-3 md:px-4">
+    <div className="min-h-[100vh] py-4 md:py-8 px-3 md:px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-8">
@@ -315,7 +315,7 @@ export default function MyLeagues() {
                         {league.name}
                       </h3>
                       <div className="flex-1 mb-3">
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed h-[40px]">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                           {league.description}
                         </p>
                       </div>
@@ -397,7 +397,7 @@ export default function MyLeagues() {
                         {request.league.name}
                       </h3>
                       <div className="flex-1 mb-3">
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed h-[40px]">
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                           {request.league.description}
                         </p>
                       </div>

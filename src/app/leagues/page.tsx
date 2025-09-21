@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Users, Calendar, Plus, Trophy, Loader2, X, Clock, UserX } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  Plus,
+  Trophy,
+  Loader2,
+  X,
+  Clock,
+  UserX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,16 +58,21 @@ interface CreateLeagueForm {
 export default function MyLeagues() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [leaguesData, setLeaguesData] = useState<MyLeaguesResponse>({ joined: [], pending: [] });
+  const [leaguesData, setLeaguesData] = useState<MyLeaguesResponse>({
+    joined: [],
+    pending: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createForm, setCreateForm] = useState<CreateLeagueForm>({
     name: "",
-    description: ""
+    description: "",
   });
-  const [cancellingRequest, setCancellingRequest] = useState<string | null>(null);
+  const [cancellingRequest, setCancellingRequest] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (user) {
@@ -71,16 +85,16 @@ export default function MyLeagues() {
   const fetchMyLeagues = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/leagues?scope=my');
+      const response = await fetch("/api/leagues?scope=my");
       const data = await response.json();
-      
+
       if (data.success) {
         setLeaguesData(data.data);
       } else {
-        setError(data.error || 'Failed to fetch leagues');
+        setError(data.error || "Failed to fetch leagues");
       }
     } catch {
-      setError('Failed to fetch leagues');
+      setError("Failed to fetch leagues");
     } finally {
       setLoading(false);
     }
@@ -89,15 +103,15 @@ export default function MyLeagues() {
   const createLeague = async (formData: CreateLeagueForm) => {
     try {
       setIsCreating(true);
-      const response = await fetch('/api/leagues', {
-        method: 'POST',
+      const response = await fetch("/api/leagues", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          region: 'KR',
-          type: 'Basic'
+          region: "KR",
+          type: "Basic",
         }),
       });
 
@@ -147,11 +161,11 @@ export default function MyLeagues() {
     try {
       setCancellingRequest(leagueId);
       const response = await fetch(`/api/leagues/${leagueId}/join`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         toast({
           title: "신청 취소 완료",
@@ -178,13 +192,11 @@ export default function MyLeagues() {
     }
   };
 
-
-
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -238,20 +250,24 @@ export default function MyLeagues() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-4 md:py-8 px-3 md:px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               내 리그 관리
             </h1>
-            <p className="text-muted-foreground">
-              가입한 리그 {leaguesData.joined.length}개, 신청 대기 중 {leaguesData.pending.length}개
+            <p className="text-sm sm:text-base text-muted-foreground">
+              가입한 리그 {leaguesData.joined.length}개, 신청 대기 중{" "}
+              {leaguesData.pending.length}개
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
-            <Button onClick={() => setShowCreateModal(true)}>
+          <div className="w-full sm:w-auto">
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="w-full sm:w-auto"
+            >
               <Plus className="h-4 w-4 mr-2" />
               리그 생성
             </Button>
@@ -259,14 +275,14 @@ export default function MyLeagues() {
         </div>
 
         {/* Joined Leagues Section */}
-        <div className="mb-12">
+        <div className="mb-8 md:mb-12">
           <div className="flex items-center mb-6">
             <Trophy className="h-6 w-6 text-yellow-500 mr-3" />
             <h2 className="text-2xl font-bold text-foreground">
               내가 가입한 리그 ({leaguesData.joined.length}개)
             </h2>
           </div>
-          
+
           {leaguesData.joined.length === 0 ? (
             <div className="text-center py-12 bg-muted/20 rounded-lg border border-border">
               <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -278,9 +294,7 @@ export default function MyLeagues() {
               </p>
               <div className="flex gap-3 justify-center">
                 <Link href="/universe">
-                  <Button variant="outline">
-                    리그 둘러보기
-                  </Button>
+                  <Button variant="outline">리그 둘러보기</Button>
                 </Link>
                 <Button onClick={() => setShowCreateModal(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -289,7 +303,7 @@ export default function MyLeagues() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {leaguesData.joined.map((league) => (
                 <div
                   key={league.id}
@@ -307,7 +321,14 @@ export default function MyLeagues() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      <RoleBadge role={league.my_role.toLowerCase() as "owner" | "admin" | "member"} />
+                      <RoleBadge
+                        role={
+                          league.my_role.toLowerCase() as
+                            | "owner"
+                            | "admin"
+                            | "member"
+                        }
+                      />
                     </div>
                   </div>
 
@@ -345,14 +366,14 @@ export default function MyLeagues() {
         </div>
 
         {/* Pending Requests Section */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <div className="flex items-center mb-6">
             <Clock className="h-6 w-6 text-blue-500 mr-3" />
             <h2 className="text-2xl font-bold text-foreground">
               가입 신청 대기 중 ({leaguesData.pending.length}개)
             </h2>
           </div>
-          
+
           {leaguesData.pending.length === 0 ? (
             <div className="text-center py-8 bg-muted/10 rounded-lg border border-border">
               <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -364,7 +385,7 @@ export default function MyLeagues() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {leaguesData.pending.map((request) => (
                 <div
                   key={request.id}
@@ -409,11 +430,15 @@ export default function MyLeagues() {
                     <div className="text-xs text-muted-foreground">
                       소유자: {request.league.owner?.nickname || "Unknown"}
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => cancelJoinRequest(request.league.id.toString())}
-                      disabled={cancellingRequest === request.league.id.toString()}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        cancelJoinRequest(request.league.id.toString())
+                      }
+                      disabled={
+                        cancellingRequest === request.league.id.toString()
+                      }
                     >
                       {cancellingRequest === request.league.id.toString() ? (
                         <>
@@ -437,27 +462,37 @@ export default function MyLeagues() {
         {/* Create League Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="w-full max-w-2xl bg-card rounded-lg shadow-lg border border-border">
-              <div className="flex items-center justify-between p-6 border-b border-border">
-                <h2 className="text-xl font-semibold text-foreground">새 리그 만들기</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+            <div className="w-full max-w-2xl bg-card rounded-lg shadow-lg border border-border max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+                <h2 className="text-lg md:text-xl font-semibold text-foreground">
+                  새 리그 만들기
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowCreateModal(false)}
                   disabled={isCreating}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              
-              <form onSubmit={handleCreateSubmit} className="p-6 space-y-6">
+
+              <form
+                onSubmit={handleCreateSubmit}
+                className="p-4 md:p-6 space-y-4 md:space-y-6"
+              >
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     리그 이름 *
                   </label>
                   <Input
                     value={createForm.name}
-                    onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                     placeholder="리그 이름을 입력하세요"
                     disabled={isCreating}
                     required
@@ -470,7 +505,12 @@ export default function MyLeagues() {
                   </label>
                   <Textarea
                     value={createForm.description}
-                    onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     placeholder="리그에 대한 설명을 입력하세요"
                     rows={4}
                     disabled={isCreating}
@@ -479,27 +519,40 @@ export default function MyLeagues() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">리그 타입</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    리그 타입
+                  </label>
                   <Input value="Basic" disabled className="bg-muted" />
-                  <p className="text-xs text-muted-foreground mt-1">현재 Basic 타입으로 고정됩니다</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    현재 Basic 타입으로 고정됩니다
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">지역</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    지역
+                  </label>
                   <Input value="한국 (KR)" disabled className="bg-muted" />
-                  <p className="text-xs text-muted-foreground mt-1">현재 한국 지역으로 고정됩니다</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    현재 한국 지역으로 고정됩니다
+                  </p>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowCreateModal(false)}
                     disabled={isCreating}
+                    className="w-full sm:w-auto"
                   >
                     취소
                   </Button>
-                  <Button type="submit" disabled={isCreating}>
+                  <Button
+                    type="submit"
+                    disabled={isCreating}
+                    className="w-full sm:w-auto"
+                  >
                     {isCreating ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />

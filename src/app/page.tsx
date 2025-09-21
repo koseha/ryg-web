@@ -101,7 +101,7 @@ function HomeContent() {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden min-h-[80vh] flex items-center">
+      <section className="relative py-8 md:py-20 px-3 md:px-4 overflow-hidden min-h-[70vh] md:min-h-[80vh] flex items-center">
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95"></div>
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
@@ -109,31 +109,31 @@ function HomeContent() {
         ></div>
 
         <div className="relative container mx-auto text-center">
-          <div className="animate-float mb-8">
-            <Crown className="h-20 w-20 text-primary mx-auto mb-4 animate-glow" />
+          <div className="animate-float mb-6 md:mb-8">
+            <Crown className="h-12 w-12 md:h-20 md:w-20 text-primary mx-auto mb-3 md:mb-4 animate-glow" />
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-glow">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 text-glow">
             <span className="text-primary">RYG</span>와 함께
             <br />
             <span className="text-primary">게임을 기록하세요</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-2">
             Record Your Games - 친구들과 리그를 만들고, 매치를 생성하며, 함께
             즐기는 새로운 방법
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
             <Button
               asChild
               variant="hero"
               size="lg"
-              className="text-lg px-8 py-4"
+              className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4 w-full sm:w-auto"
             >
               <Link href="/universe">
                 시작하기
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Link>
             </Button>
 
@@ -141,11 +141,11 @@ function HomeContent() {
               asChild
               variant="outline"
               size="lg"
-              className="text-lg px-8 py-4"
+              className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4 w-full sm:w-auto"
             >
               <Link href="/leagues">
                 내 리그
-                <Shield className="ml-2 h-5 w-5" />
+                <Shield className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Link>
             </Button>
           </div>
@@ -153,18 +153,18 @@ function HomeContent() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-card/20">
+      <section className="py-8 md:py-20 px-3 md:px-4 bg-card/20">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 text-glow">
               주요 <span className="text-primary">기능</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
               RYG (Record Your Games)의 강력한 기능들을 발견해보세요
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 max-w-6xl mx-auto">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -194,16 +194,16 @@ function HomeContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-8 md:py-20 px-3 md:px-4">
         <div className="container mx-auto text-center">
-          <div className="card-glass max-w-4xl mx-auto p-12">
-            <Trophy className="h-16 w-16 text-primary mx-auto mb-6 animate-float" />
+          <div className="card-glass max-w-4xl mx-auto p-4 md:p-12">
+            <Trophy className="h-12 w-12 md:h-16 md:w-16 text-primary mx-auto mb-4 md:mb-6 animate-float" />
 
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 text-glow">
               지금 <span className="text-primary">시작하세요</span>
             </h2>
 
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto px-2">
               모든 매치가 의미있고, 모든 리그가 이야기를 만들어가는 세상으로
               들어오세요
             </p>
@@ -212,11 +212,11 @@ function HomeContent() {
               asChild
               variant="hero"
               size="lg"
-              className="text-xl px-12 py-6"
+              className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 w-full sm:w-auto"
             >
               <Link href="/universe">
                 지금 시작하기
-                <Crown className="ml-3 h-6 w-6" />
+                <Crown className="ml-2 md:ml-3 h-5 w-5 md:h-6 md:w-6" />
               </Link>
             </Button>
           </div>

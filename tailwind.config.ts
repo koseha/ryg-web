@@ -13,7 +13,11 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "0",
+        sm: "1.5rem",
+        lg: "2rem",
+      },
       screens: {
         "2xl": "1400px",
       },
@@ -86,7 +90,7 @@ export default {
             height: "0",
           },
         },
-        "glow": {
+        glow: {
           "0%": {
             boxShadow: "0 0 5px hsl(var(--primary) / 0.2)",
           },
@@ -94,7 +98,7 @@ export default {
             boxShadow: "0 0 20px hsl(var(--primary) / 0.6)",
           },
         },
-        "float": {
+        float: {
           "0%, 100%": {
             transform: "translateY(0px)",
           },
@@ -116,8 +120,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "glow": "glow 2s ease-in-out infinite alternate",
-        "float": "float 3s ease-in-out infinite",
+        glow: "glow 2s ease-in-out infinite alternate",
+        float: "float 3s ease-in-out infinite",
         "fade-in": "fade-in 0.3s ease-out",
       },
     },

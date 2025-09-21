@@ -188,22 +188,22 @@ export default function Universe() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-4 md:py-8 px-3 md:px-4">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <Crown className="h-16 w-16 text-primary mx-auto mb-4 animate-glow" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
+        <div className="text-center mb-8 md:mb-12">
+          <Crown className="h-12 w-12 md:h-16 md:w-16 text-primary mx-auto mb-3 md:mb-4 animate-glow" />
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 text-glow">
             모든 리그 <span className="text-primary">둘러보기</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
             전 세계의 멋진 게임 커뮤니티를 발견해보세요
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="card-glass p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="card-glass p-3 md:p-6 mb-4 md:mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <div className="flex-1">
               <SearchInput
                 placeholder="리그 검색..."
@@ -227,8 +227,8 @@ export default function Universe() {
         </div>
 
         {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-muted-foreground">
+        <div className="mb-4 md:mb-6">
+          <p className="text-muted-foreground text-sm md:text-base">
             {leagues.length}개 표시 중 (총 {total}개)
           </p>
         </div>
@@ -253,11 +253,11 @@ export default function Universe() {
 
         {/* League Cards */}
         {!isLoading && !error && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {leagues.map((league, index) => (
               <div
                 key={league.id}
-                className="card-feature group animate-fade-in flex flex-col h-[320px]"
+                className="card-feature group animate-fade-in flex flex-col min-h-[280px] md:min-h-[320px]"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Header */}
@@ -328,10 +328,12 @@ export default function Universe() {
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
                       <span>
-                        최근 매치: {league.last_matched_at 
-                          ? new Date(league.last_matched_at).toLocaleDateString()
-                          : "없음"
-                        }
+                        최근 매치:{" "}
+                        {league.last_matched_at
+                          ? new Date(
+                              league.last_matched_at
+                            ).toLocaleDateString()
+                          : "없음"}
                       </span>
                     </div>
                   </div>

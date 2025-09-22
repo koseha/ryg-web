@@ -74,39 +74,45 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 데이터 변환 - league_stats 정보를 평면화하고 owner 닉네임 조회
-    const transformedData = await Promise.all(
-      data?.map(async (league) => {
-        // 리그 소유자 정보 조회
-        let owner = null;
-        if (league.owner_id) {
-          const { data: ownerProfile } = await supabase
-            .from("profiles")
-            .select("id, nickname, avatar_url")
-            .eq("id", league.owner_id)
-            .single();
-          owner = ownerProfile;
-        }
+    // 데이터 변환 - 배치로 owner 정보 조회 (N+1 쿼리 해결)
+    let transformedData = [];
 
+    if (data && data.length > 0) {
+      // 모든 owner_id를 수집
+      const ownerIds = [...new Set(data.map(league => league.owner_id).filter(Boolean))];
+
+      // 배치로 모든 owner 정보 조회 (1번의 쿼리)
+      const { data: ownerProfiles } = await supabase
+        .from("profiles")
+        .select("id, nickname, avatar_url")
+        .in("id", ownerIds);
+
+      // owner 정보를 Map으로 변환하여 빠른 조회
+      const ownerMap = new Map(ownerProfiles?.map(profile => [profile.id, profile]) || []);
+
+      // 데이터 변환
+      transformedData = data.map((league) => {
         // league_stats가 배열인지 객체인지 확인
-        const stats = Array.isArray(league.league_stats) 
-          ? league.league_stats[0] 
+        const stats = Array.isArray(league.league_stats)
+          ? league.league_stats[0]
           : league.league_stats;
+
+        const ownerProfile = ownerMap.get(league.owner_id);
 
         return {
           ...league,
           member_count: stats?.member_count || 1,
           match_count: stats?.match_count || 0,
           last_matched_at: stats?.last_matched_at || null,
-          owner: owner ? {
-            id: owner.id,
-            nickname: owner.nickname,
-            avatar_url: owner.avatar_url
+          owner: ownerProfile ? {
+            id: ownerProfile.id,
+            nickname: ownerProfile.nickname,
+            avatar_url: ownerProfile.avatar_url
           } : null,
           league_stats: undefined // 원본 데이터에서 제거
         };
-      }) || []
-    );
+      });
+    }
 
     const total = count || 0;
     const hasMore = offset + limit < total;

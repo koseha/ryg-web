@@ -46,7 +46,7 @@ export class PerformanceMonitor {
   }
 
   static getAllStats() {
-    const allStats: Record<string, any> = {};
+    const allStats: Record<string, ReturnType<typeof PerformanceMonitor.getStats>> = {};
     for (const [label] of this.measurements) {
       allStats[label] = this.getStats(label);
     }
@@ -69,7 +69,7 @@ export class PerformanceMonitor {
 }
 
 // API 라우트용 성능 측정 래퍼
-export function withPerformanceMonitoring<T extends any[], R>(
+export function withPerformanceMonitoring<T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   label: string
 ) {

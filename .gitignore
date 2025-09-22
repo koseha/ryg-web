@@ -62,5 +62,12 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
 .mcp.json
+
+# Task Master - exclude reports and temp files
+.taskmaster/reports/
+.taskmaster/temp/
+
+# Environment-specific configs (if containing API keys)
+# .taskmaster/config.json

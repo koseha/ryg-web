@@ -51,7 +51,7 @@ export function useApiPerformance() {
       if (response.ok) {
         try {
           data = await response.json();
-        } catch (e) {
+        } catch {
           console.warn('Failed to parse JSON response');
         }
       }
